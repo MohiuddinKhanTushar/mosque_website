@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masjid Digital</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <audio id="bg-audio" src="assets/hayya_ala_salat.mp3" preload="auto"></audio>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="assets/logo.png" alt="Masjid Digital Logo" class="logo-img">
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Events</a></li>
+                <li><a href="#">Services</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#" class="btn-donate">Donate</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <span class="context reveal">Today's Verse</span>
+            <div class="quran-container">
+                <p class="translation reveal-type">"And He is with you wherever you are."</p>
+                <p class="arabic reveal-type">وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ</p>
+                <span class="source reveal">Quran 57:4</span>
+            </div>
+        </div>
+        <div class="scroll-indicator">↓</div>
+    </section>
+
+    <section class="prayer-section">
+        <div class="prayer-grid">
+            <div class="prayer-card reveal" data-prayer="Fajr">
+                <i data-lucide="sunrise" class="prayer-icon"></i>
+                <span class="label">Fajr</span>
+                <span class="time">05:15 AM</span>
+            </div>
+            <div class="prayer-card reveal" data-prayer="Sunrise">
+                <i data-lucide="sun-dim" class="prayer-icon"></i>
+                <span class="label">Sunrise</span>
+                <span class="time">06:38 AM</span>
+            </div>
+            <div class="prayer-card reveal" data-prayer="Dhuhr">
+                <i data-lucide="sun" class="prayer-icon"></i>
+                <span class="label">Dhuhr</span>
+                <span class="time">01:15 PM</span>
+            </div>
+            <div class="prayer-card reveal" data-prayer="Asr">
+                <i data-lucide="cloud-sun" class="prayer-icon"></i>
+                <span class="label">Asr</span>
+                <span class="time">05:30 PM</span>
+            </div>
+            <div class="prayer-card reveal" data-prayer="Maghrib">
+                <i data-lucide="sunset" class="prayer-icon"></i>
+                <span class="label">Maghrib</span>
+                <span class="time">07:45 PM</span>
+            </div>
+            <div class="prayer-card reveal" data-prayer="Isha">
+                <i data-lucide="moon" class="prayer-icon"></i>
+                <span class="label">Isha</span>
+                <span class="time">09:00 PM</span>
+            </div>
+        </div>
+        <p class="next-prayer-status reveal">Next Prayer: <span id="next-prayer-name">...</span></p>
+    </section>
+
+    <div style="height: 100vh; background: var(--bg-color);"></div> 
+    
+    <script src="script.js"></script>
+</body>
+</html>
