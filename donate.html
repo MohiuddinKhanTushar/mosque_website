@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate - Yardley Muslim Centre</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="subpage">
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="assets/logo.png" alt="YMC Logo" class="logo-img">
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#timetable">Timetable</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="#">Events</a></li>
+                <li><a href="#">Services</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="donate.html" class="btn-donate">Donate</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <section class="donate-hero">
+            <div class="container reveal">
+                <span class="reminder-badge">Sadaqah Jariyah</span>
+                <h1>Be Part of YMC</h1>
+                <p class="hero-subtitle">Support the Yardley Muslim Centre by donating any amount.</p>
+            </div>
+        </section>
+
+        <section class="donation-options">
+            <div class="donation-grid">
+                <div class="donate-item reveal">
+                    <span class="item-label">One Musallah</span>
+                    <span class="item-price">£175</span>
+                </div>
+                <div class="donate-item reveal">
+                    <span class="item-label">One Sq Foot</span>
+                    <span class="item-price">£200</span>
+                </div>
+                <div class="donate-item active reveal">
+                    <span class="item-label">Founding Member</span>
+                    <span class="item-price">£1000</span>
+                </div>
+                <div class="donate-item reveal">
+                    <span class="item-label">Aluminium Door</span>
+                    <span class="item-price">£1250</span>
+                </div>
+                <div class="donate-item reveal">
+                    <span class="item-label">UPVC Window</span>
+                    <span class="item-price">£650</span>
+                </div>
+                <div class="donate-item reveal">
+                    <span class="item-label">Other</span>
+                    <span class="item-price">Any Amount</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="bank-details-section" style="padding-bottom: 100px;">
+            <div class="bank-grid">
+                <div class="bank-card reveal">
+                    <h3>Yardley Muslim Centre</h3>
+                    <div class="detail-row" onclick="copyValue('778510', this)">
+                        <span class="detail-label">Sort Code</span>
+                        <span class="detail-value">77 85 10 <i data-lucide="copy"></i></span>
+                    </div>
+                    <div class="detail-row" onclick="copyValue('60404360', this)">
+                        <span class="detail-label">Account No.</span>
+                        <span class="detail-value">60 40 43 60 <i data-lucide="copy"></i></span>
+                    </div>
+                </div>
+
+                <div class="bank-card reveal">
+                    <h3>Thaqwa Masjid</h3>
+                    <div class="detail-row" onclick="copyValue('206788', this)">
+                        <span class="detail-label">Sort Code</span>
+                        <span class="detail-value">20 67 88 <i data-lucide="copy"></i></span>
+                    </div>
+                    <div class="detail-row" onclick="copyValue('70160032', this)">
+                        <span class="detail-label">Account No.</span>
+                        <span class="detail-value">70 16 00 32 <i data-lucide="copy"></i></span>
+                    </div>
+                </div>
+            </div>
+            <p class="jazakallah reveal">JazakAllah Khair</p>
+        </section>
+    </main>
+
+    <footer class="footer reveal">
+        <p>&copy; 2026 Yardley Muslim Centre. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+
+    <script>
+        function copyValue(text, element) {
+            // Remove spaces from account numbers for clean copying
+            navigator.clipboard.writeText(text.replace(/\s/g, ''));
+            
+            // Visual feedback
+            const originalColor = element.style.color;
+            element.style.color = "var(--accent)";
+            setTimeout(() => { 
+                element.style.color = originalColor; 
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
