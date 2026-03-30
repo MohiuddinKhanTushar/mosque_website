@@ -63,11 +63,34 @@ body {
     filter: none; 
 }
 
+/* Menu Toggle / Burger Button */
+.menu-toggle {
+    display: none; /* Hidden on desktop */
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white; /* Default hero color */
+    padding: 10px;
+    transition: color 0.3s ease;
+    z-index: 1001;
+}
+
+.menu-toggle svg {
+    width: 28px;
+    height: 28px;
+}
+
+.navbar.scrolled .menu-toggle {
+    color: var(--text-main);
+}
+
 .nav-menu {
     list-style: none;
     display: flex;
     align-items: center;
     gap: 30px;
+    margin: 0;
+    padding: 0;
 }
 
 .nav-menu li a {
@@ -99,7 +122,7 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
-    color: var(--text-white);
+    color: black;
     overflow: hidden;
 }
 
@@ -121,10 +144,9 @@ body {
     to { transform: scale(1.15); }
 }
 
-/* API Safety: Limits width so long verses don't hit screen edges */
 .translation { 
     font-size: 1.5rem; 
-    font-weight: 300; 
+    font-weight: 600; 
     font-style: italic; 
     margin-bottom: 25px; 
     max-width: 800px; 
@@ -136,7 +158,7 @@ body {
 
 .arabic { 
     font-family: 'Amiri', serif; 
-    font-size: 1.8rem; /* Slightly larger for better readability of complex API script */
+    font-size: 1.8rem; 
     line-height: 1.8;
     max-width: 900px;
     margin: 0 auto 20px;
@@ -351,12 +373,11 @@ body {
 /* --- Feature Grid Layout --- */
 .feature-grid {
     display: grid;
-    /* Forces exactly 3 columns on desktop */
     grid-template-columns: repeat(3, 1fr); 
     gap: 25px;
     margin: 40px auto 80px;
     width: 100%;
-    max-width: 1200px; /* Ensures it doesn't get too wide on giant monitors */
+    max-width: 1200px;
 }
 
 .feature-card {
@@ -367,17 +388,15 @@ body {
     flex-direction: column;
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     border: 1px solid rgba(0,0,0,0.05);
-    height: 100%; /* Ensures all cards are equal height */
+    height: 100%;
 }
 
 .feature-card:hover {
     transform: translateY(-5px);
 }
 
-/* Image Areas */
 .feature-image {
     width: 100%;
-    /* Increased image space to 55% of the square */
     height: 55%; 
     background-size: cover;
     background-position: center;
@@ -396,19 +415,17 @@ body {
 .img-bottom-left { grid-area: bottom-l; background-size: cover; background-position: center; }
 .img-bottom-right { grid-area: bottom-r; background-size: cover; background-position: center; }
 
-/* Card Body */
 .feature-body {
-    padding: 15px 20px; /* Reduced padding */
+    padding: 15px 20px; 
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Pushes title closer to the image */
     justify-content: flex-start; 
 }
 
 .feature-body a {
-    margin-top: auto; /* Pushes button to the very bottom of the square */
+    margin-top: auto; 
     margin-bottom: 10px;
 }
 
@@ -423,7 +440,6 @@ body {
 .feature-subtitle { font-size: 1.1rem; color: #2d5a27; font-weight: 500; margin-bottom: 20px; }
 .feature-date { font-size: 0.85rem; color: #4a6fa5; margin-bottom: 10px; margin-top: 20px; }
 
-/* Buttons */
 .btn-feature {
     padding: 12px 28px;
     border-radius: 50px;
@@ -448,24 +464,6 @@ body {
     font-size: 0.9rem;
     margin-top: auto;
 }
-
-.feature-body .btn-feature, 
-.feature-body .btn-text {
-    margin-top: auto;
-    margin-bottom: 5px;
-    padding: 10px 24px; /* Slightly tighter button padding */
-    font-size: 0.85rem;
-}
-
-/* Mobile Adjustments */
-@media (max-width: 992px) {
-    .feature-grid {
-        grid-template-columns: 1fr;
-        max-width: 500px; /* Keeps cards from looking stretched on mobile */
-    }
-}
-
-
 
 /* --- Donation Page Fixes --- */
 .donate-hero {
@@ -503,9 +501,6 @@ body {
     color: var(--text-white); 
     text-shadow: 0 2px 10px rgba(0,0,0,0.2); 
 }
-.donate-hero .hero-subtitle { 
-    color: rgba(255,255,255,0.8); 
-}
 
 .donation-grid {
     display: grid;
@@ -514,7 +509,6 @@ body {
     max-width: 1100px;
     margin: 40px auto;
     padding: 0 20px;
-    grid-auto-rows: 1fr;
 }
 
 .donate-item {
@@ -528,32 +522,7 @@ body {
     text-align: center;
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     border: 1px solid rgba(0,0,0,0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.donate-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
-
-.donate-item.active { border: 2px solid var(--accent); background: #fffdf5; }
-
-.item-label {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-bottom: 8px;
-    width: 100%;
-}
-
-.item-price {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--text-main);
-    line-height: 1.2;
-    width: 100%;
-    display: block;
+    transition: transform 0.3s ease;
 }
 
 .bank-grid {
@@ -570,36 +539,114 @@ body {
     backdrop-filter: blur(10px);
     border-radius: 30px;
     padding: 40px;
-    border: 1px solid rgba(255,255,255,0.6);
 }
 
-.bank-card h3 { margin-bottom: 25px; font-size: 1.1rem; color: var(--accent); }
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-    cursor: pointer;
-    transition: opacity 0.2s;
+/* --- CONTACT PAGE CSS --- */
+.contact-header-section {
+    background-color: #f5f5f7;
+    padding: 160px 20px 80px;
+    text-align: center;
 }
 
-.detail-row:hover { opacity: 0.7; }
-.detail-value { font-weight: 700; display: flex; align-items: center; gap: 8px; }
-.detail-value i { width: 14px; color: var(--text-secondary); }
+.contact-header-section h1 { font-size: 3rem; font-weight: 700; color: #1a1a1a; margin-bottom: 15px; }
 
-.jazakallah { text-align: center; font-size: 1.5rem; font-style: italic; margin-top: 40px; color: var(--text-secondary); }
+.contact-main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 20px;
+}
 
-/* Mobile Adjustments for Grid */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 60px;
+}
+
+.info-item { display: flex; gap: 20px; margin-bottom: 40px; }
+
+.info-icon {
+    width: 54px; height: 54px;
+    background: white;
+    border: 1px solid #d4af37;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #d4af37; flex-shrink: 0;
+}
+
+.contact-form-container {
+    background: white;
+    padding: 45px;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.form-group { margin-bottom: 25px; }
+.form-group input, .form-group textarea {
+    width: 100%; padding: 15px; border: 1px solid #e0e0e0;
+    border-radius: 10px; font-family: 'Inter', sans-serif;
+}
+
+.btn-submit {
+    background: #d4af37; color: white; border: none;
+    padding: 18px 40px; border-radius: 10px;
+    font-weight: 700; cursor: pointer; width: 100%;
+}
+
+/* --- GLOBAL RESPONSIVE ADJUSTMENTS --- */
 @media (max-width: 1024px) {
     .donation-grid { grid-template-columns: repeat(2, 1fr); }
-    .translation { font-size: 1.3rem; }
+    .feature-grid { grid-template-columns: 1fr; max-width: 500px; }
 }
 
 @media (max-width: 768px) {
-    .bank-grid { grid-template-columns: 1fr; }
+    /* Burger Toggle Visibility */
+    .menu-toggle {
+        display: block;
+    }
+
+    .nav-container {
+        padding: 0 20px;
+    }
+
+    /* Mobile Nav Menu Styling */
+    .nav-menu {
+        position: fixed;
+        top: 0;
+        right: -100%; /* Hidden */
+        height: 100vh;
+        width: 80%;
+        background: rgba(255, 255, 255, 0.98); /* Light bg for visibility */
+        backdrop-filter: blur(15px);
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        gap: 25px;
+        z-index: 1000;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+    }
+
+    /* Slide in when .active is added via JS */
+    .nav-menu.active {
+        right: 0;
+    }
+
+    /* Force links to be dark on the light mobile background */
+    .nav-menu li a {
+        color: var(--text-main) !important;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .btn-donate {
+        width: 80%;
+        text-align: center;
+    }
+
+    /* Section adjustments */
+    .bank-grid, .contact-grid { grid-template-columns: 1fr; }
     .donate-hero h1 { font-size: 2.2rem; }
-    .donation-grid { grid-template-columns: 1fr; }
     .arabic { font-size: 1.4rem; }
     .translation { font-size: 1.1rem; }
+    .contact-header-section { padding-top: 120px; }
 }

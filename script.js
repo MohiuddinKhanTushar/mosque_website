@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const audio = document.getElementById('bg-audio');
     let lastScrollY = window.scrollY;
 
+    // --- URL Force Reset Logic ---
+    if (window.location.search.includes('reset=true')) {
+        localStorage.removeItem('dailyQuote');
+        localStorage.removeItem('lastQuoteDate');
+    }
+
     // 1. Audio "Unlock" Logic
     const unlockAudio = () => {
         if (!audio) return;
@@ -41,62 +47,106 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
-    // 3. Dynamic Quran Quote Logic (API Integration)
+    // 3. CMS-Based Quran Quote Logic
     async function fetchDailyAyah() {
-        const translationEl = document.querySelector('.translation');
-        const arabicEl = document.querySelector('.arabic');
-        
+        const translationEl = document.getElementById('quran-translation');
+        const arabicEl = document.getElementById('quran-arabic');
         if (!translationEl || !arabicEl) return;
 
-        // Try to get cached quote for this session to prevent flickering on refresh
-        const cachedAyah = sessionStorage.getItem('dailyAyah');
-        if (cachedAyah) {
-            const data = JSON.parse(cachedAyah);
-            updateQuoteUI(data.arabic, data.english, data.ref);
+        const today = new Date().toDateString();
+        const cachedDate = localStorage.getItem('lastQuoteDate');
+        const cachedQuote = localStorage.getItem('dailyQuote');
+
+        // Use cached quote if it's the same day
+        if (cachedDate === today && cachedQuote) {
+            const data = JSON.parse(cachedQuote);
+            updateQuoteUI(data.arabic, data.english, data.reference);
             return;
         }
 
+        // Otherwise, fetch from CMS
         try {
-            // Pick a random verse (Total 6236 verses in Quran)
-            const randomVerse = Math.floor(Math.random() * 6236) + 1;
-            const response = await fetch(`https://api.alquran.cloud/v1/ayah/${randomVerse}/editions/quran-simple,en.sahih`);
-            const res = await response.json();
+            // Wait for Firebase to be ready (it's initialized in index.html)
+            if (!window.db) {
+                setTimeout(fetchDailyAyah, 500); 
+                return;
+            }
 
-            if (res.code === 200) {
-                const arabic = res.data[0].text;
-                const english = res.data[1].text;
-                const ref = `${res.data[0].surah.englishName} ${res.data[0].surah.number}:${res.data[0].numberInSurah}`;
+            const { getDocs, collection } = window.firestoreUtils;
+            const querySnapshot = await getDocs(collection(window.db, "quotes"));
+            const quotes = [];
+            querySnapshot.forEach((doc) => quotes.push(doc.data()));
 
-                // Cache it for the current session
-                sessionStorage.setItem('dailyAyah', JSON.stringify({ arabic, english, ref }));
-                
-                updateQuoteUI(arabic, english, ref);
+            if (quotes.length > 0) {
+                // Randomly select one from the curated list
+                const randomIndex = Math.floor(Math.random() * quotes.length);
+                const selected = quotes[randomIndex];
+
+                // Save to local storage for 24h consistency
+                localStorage.setItem('lastQuoteDate', today);
+                localStorage.setItem('dailyQuote', JSON.stringify(selected));
+
+                updateQuoteUI(selected.arabic, selected.english, selected.reference);
+            } else {
+                throw new Error("Quotes collection is empty");
             }
         } catch (error) {
-            console.error("Quran API Error:", error);
-            // Fallback if API fails
+            console.error("CMS Quote Error:", error);
+            // Secure Fallback
             updateQuoteUI("إِنَّ مَعَ الْعُسْرِ يُسْرًا", "Indeed, with hardship comes ease.", "Surah Al-Inshirah 94:6");
         }
     }
 
     function updateQuoteUI(arabic, english, ref) {
-        const translationEl = document.querySelector('.translation');
-        const arabicEl = document.querySelector('.arabic');
-        
-        arabicEl.innerText = arabic;
-        translationEl.innerText = english;
+        const translationEl = document.getElementById('quran-translation');
+        const arabicEl = document.getElementById('quran-arabic');
+        if (!translationEl || !arabicEl) return;
 
-        // Append the reference subtly
-        const refSpan = document.createElement('span');
-        refSpan.style = "display: block; font-size: 0.9rem; font-style: normal; opacity: 0.6; margin-top: 15px; font-family: 'Inter', sans-serif;";
-        refSpan.innerText = `— ${ref}`;
-        translationEl.appendChild(refSpan);
+        arabicEl.innerText = arabic;
+        // Check for length to prevent hero overflow
+        if(english.length > 180) {
+            translationEl.style.fontSize = "clamp(1.1rem, 2vw, 1.3rem)";
+        }
+
+        translationEl.innerHTML = `"${english}" <span style="display: block; font-size: 0.9rem; font-style: normal; opacity: 0.6; margin-top: 15px; font-family: 'Inter', sans-serif;">— ${ref}</span>`;
     }
 
-    // Initialize Quote Fetch
-    fetchDailyAyah();
+    // 4. Dynamic Hadith Logic
+    async function fetchDailyHadith() {
+        const hadithTextEl = document.querySelector('.reminder-text');
+        const hadithSourceEl = document.querySelector('.reminder-source');
+        if (!hadithTextEl || !hadithSourceEl) return;
 
-    // 4. Quran Quote & Audio Observer
+        const cachedHadith = sessionStorage.getItem('dailyHadith');
+        if (cachedHadith) {
+            const data = JSON.parse(cachedHadith);
+            hadithTextEl.innerText = `"${data.text}"`;
+            hadithSourceEl.innerText = `— ${data.source}`;
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/eng-bukhari.json`);
+            const res = await response.json();
+            const randomIndex = Math.floor(Math.random() * res.hadiths.length);
+            const randomHadith = res.hadiths[randomIndex];
+            const text = randomHadith.text.replace(/<[^>]*>?/gm, '');
+            const source = `Sahih Bukhari, Hadith ${randomHadith.hadithnumber}`;
+
+            sessionStorage.setItem('dailyHadith', JSON.stringify({ text, source }));
+            hadithTextEl.innerText = `"${text}"`;
+            hadithSourceEl.innerText = `— ${source}`;
+        } catch (error) {
+            hadithTextEl.innerText = `"The best among you are those who have the best manners and character."`;
+            hadithSourceEl.innerText = `— Sahih Bukhari`;
+        }
+    }
+
+    // Initialize Fetches
+    fetchDailyAyah();
+    fetchDailyHadith();
+
+    // 5. Intersection Observers
     const quranObserverOptions = { threshold: 0.1 };
     const quranObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -113,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const quranContainer = document.querySelector('.hero-content');
     if (quranContainer) quranObserver.observe(quranContainer);
 
-    // 5. General Content Observer
     const generalObserverOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
     const generalObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -128,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, generalObserverOptions);
 
-    const revealElements = document.querySelectorAll('.prayer-card, .next-prayer-status, .reveal, .reminder-card, .partners-grid, .donate-item, .bank-card, .footer');
+    const revealElements = document.querySelectorAll('.prayer-card, .next-prayer-status, .reveal, .reminder-card, .partners-grid, .footer');
     revealElements.forEach(el => generalObserver.observe(el));
 
     // 6. Prayer Highlighting
@@ -159,3 +208,34 @@ document.addEventListener('DOMContentLoaded', () => {
     highlightPrayer();
     setInterval(highlightPrayer, 60000);
 });
+
+// --- Burger Menu Logic ---
+    const menuToggle = document.getElementById('menu-toggle');
+    const navLinks = document.getElementById('nav-links');
+    const menuIcon = menuToggle ? menuToggle.querySelector('i') : null;
+
+    if (menuToggle && navLinks) {
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            nav.classList.toggle('mobile-active');
+
+            // Toggle icon between 'menu' and 'x' (requires Lucide)
+            const isOpened = navLinks.classList.contains('active');
+            if (menuIcon) {
+                menuIcon.setAttribute('data-lucide', isOpened ? 'x' : 'menu');
+                lucide.createIcons(); // Refresh icons to show the X
+            }
+        });
+
+        // Close menu when a link is clicked
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                nav.classList.remove('mobile-active');
+                if (menuIcon) {
+                    menuIcon.setAttribute('data-lucide', 'menu');
+                    lucide.createIcons();
+                }
+            });
+        });
+    }

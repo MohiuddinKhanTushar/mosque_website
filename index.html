@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
 </head>
 <body>
 
-    <audio id="bg-audio" src="assets/hayya_ala_salat.mp3" preload="auto"></audio>
+    <audio id="bg-audio" src="assets/hayya_alal_falah.mp3" preload="auto"></audio>
 
     <nav class="navbar" id="navbar">
         <div class="nav-container">
@@ -19,14 +20,21 @@
                     <img src="assets/logo.png" alt="YMC Logo" class="logo-img">
                 </a>
             </div>
-            <ul class="nav-menu">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="index.html#timetable">Timetable</a></li>
+
+            <!-- Burger Menu Toggle Button -->
+            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Menu">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <!-- Navigation Links -->
+            <ul class="nav-menu" id="nav-links">
+                <li><a href="index.html" style="color: #d4af37;">Home</a></li>
+                <li><a href="timetable.html">Timetable</a></li>
                 <li><a href="about.html">About</a></li>
-                <li><a href="#">Events</a></li>
+                <li><a href="events.html">Events</a></li>
                 <li><a href="#">Services</a></li>
-                <li><a href="#">Contact</a></li>
-                <li><a href="donate.html" class="btn-donate">Donate</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="donate.html" class="btn-donate">Du'a</a></li>
             </ul>
         </div>
     </nav>
@@ -34,9 +42,9 @@
     <section class="hero">
         <div class="hero-content">
             <span class="context reveal">Today's Verse</span>
-            <div class="quran-container">
-                <p class="translation reveal-type">"And He is with you wherever you are."</p>
-                <p class="arabic reveal-type">وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ</p>
+            <div class="quran-container" id="quran-hero-container">
+                <p class="translation reveal-type" id="quran-translation">Loading inspiration...</p>
+                <p class="arabic reveal-type" id="quran-arabic"></p>
             </div>
         </div>
         <div class="scroll-indicator">↓</div>
@@ -47,32 +55,32 @@
             <div class="prayer-card" data-prayer="Fajr">
                 <i data-lucide="sunrise" class="prayer-icon"></i>
                 <span class="label">Fajr</span>
-                <span class="time">05:15 AM</span>
+                <span class="time">06:15 AM</span>
             </div>
             <div class="prayer-card" data-prayer="Sunrise">
                 <i data-lucide="sun-dim" class="prayer-icon"></i>
                 <span class="label">Sunrise</span>
-                <span class="time">06:38 AM</span>
+                <span class="time">06:50 AM</span>
             </div>
             <div class="prayer-card" data-prayer="Dhuhr">
                 <i data-lucide="sun" class="prayer-icon"></i>
                 <span class="label">Dhuhr</span>
-                <span class="time">01:15 PM</span>
+                <span class="time">01:30 PM</span>
             </div>
             <div class="prayer-card" data-prayer="Asr">
                 <i data-lucide="cloud-sun" class="prayer-icon"></i>
                 <span class="label">Asr</span>
-                <span class="time">05:30 PM</span>
+                <span class="time">06:00 PM</span>
             </div>
             <div class="prayer-card" data-prayer="Maghrib">
                 <i data-lucide="sunset" class="prayer-icon"></i>
                 <span class="label">Maghrib</span>
-                <span class="time">07:45 PM</span>
+                <span class="time">07:39 PM</span>
             </div>
             <div class="prayer-card" data-prayer="Isha">
                 <i data-lucide="moon" class="prayer-icon"></i>
                 <span class="label">Isha</span>
-                <span class="time">09:00 PM</span>
+                <span class="time">09:15 PM</span>
             </div>
         </div>
         
@@ -98,7 +106,7 @@
                     <h3>Upcoming Events</h3>
                     <p class="feature-title">Community Lecture</p>
                     <p class="feature-date">Saturday, May 14</p>
-                    <a href="#" class="btn-feature secondary">View All Events</a>
+                    <a href="events.html" class="btn-feature secondary">View All Events</a>
                 </div>
             </div>
 
@@ -120,7 +128,7 @@
                 <div class="feature-body">
                     <h3>Latest News & Gallery</h3>
                     <p class="feature-title">New Youth Program</p>
-                    <a href="#" class="btn-text">Read More <i data-lucide="chevron-right"></i></a>
+                    <a href="events.html" class="btn-text">Read More <i data-lucide="chevron-right"></i></a>
                 </div>
             </div>
         </div>
@@ -142,6 +150,25 @@
         <p>&copy; 2026 Yardley Muslim Centre. All rights reserved.</p>
     </footer>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCuMwrIJ2ZRXLUIkzAsu_LMPzGFGzR4Fuw",
+            authDomain: "yardley-muslim-centre.firebaseapp.com",
+            projectId: "yardley-muslim-centre",
+            storageBucket: "yardley-muslim-centre.firebasestorage.app",
+            messagingSenderId: "719443343087",
+            appId: "1:719443343087:web:5bdf57271c1b4fcad10d1a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        window.db = db;
+        window.firestoreUtils = { collection, getDocs, query, orderBy };
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

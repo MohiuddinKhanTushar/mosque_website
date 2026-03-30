@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "title": "Ramadhan Youth Night",
+      "date": "27 MAR",
+      "time": "10:30 PM - 03:00 AM",
+      "desc": "An evening of spiritual reminders and activities.",
+      "image": "assets/event-placeholder.jpg"
+    }
+  ]
+}
