@@ -23,12 +23,26 @@
         .table-wrapper { overflow-x: auto; background: white; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); margin-bottom: 60px; width: 100%; }
         .timetable-data { width: 100%; border-collapse: collapse; text-align: center; }
         .timetable-data th { background: #fcfcfc; padding: 20px 10px; font-weight: 700; color: #888; border-bottom: 2px solid #f0f0f0; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; }
-        .timetable-data td { padding: 16px 10px; border-bottom: 1px solid #f8f8f8; color: #333; font-size: 0.9rem; }
+        .timetable-data td { padding: 16px 10px; border-bottom: 1px solid #f8f8f8; color: #333; font-size: 0.9rem; position: relative; transition: all 0.2s ease; }
         
-        .row-highlight { background-color: rgba(212, 175, 55, 0.15) !important; outline: 2px solid #d4af37; position: relative; }
-        .row-highlight td { color: #000 !important; font-weight: 700; }
+        /* Highlighting Today's Row */
+        .row-highlight { background-color: rgba(212, 175, 55, 0.15) !important; }
+        .row-highlight td { color: #000 !important; font-weight: 700; border-bottom: 1px solid rgba(212, 175, 55, 0.3) !important; }
+        
+        /* Indicator for today */
+        .today-indicator {
+            width: 4px;
+            height: 100%;
+            background: #d4af37;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
 
-        @media (max-width: 768px) { .page-hero { height: 350px; } .timetable-main-content { padding-top: 100px; } }
+        @media (max-width: 768px) { 
+            .page-hero { height: 350px; } 
+            .timetable-main-content { padding-top: 100px; } 
+        }
         .reveal { opacity: 0; transform: translateY(20px); transition: 0.6s all ease-out; }
         .reveal.active { opacity: 1; transform: translateY(0); }
     </style>
@@ -49,6 +63,7 @@
                 <li><a href="timetable.html" style="color: #d4af37;">Timetable</a></li>
                 <li><a href="about.html">About</a></li>
                 <li><a href="events.html">Events</a></li>
+                <li><a href="charity.html">Sadaqah</a></li>
                 <li><a href="contact.html">Contact</a></li>
                 <li><a href="donate.html" class="btn-donate">Du'a</a></li>
             </ul>
@@ -86,26 +101,48 @@
         const db = getFirestore(app);
 
         let allMonths = [];
-        const parseRow = (row) => (row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || row.split(',')).map(c => c.replace(/^"|"$/g, '').trim());
+        // Improved CSV parser to handle quotes and different delimiters
+        const parseRow = (row) => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let char of row) {
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        };
 
         async function loadData() {
             try {
                 const snap = await getDoc(doc(db, "settings", "timetable"));
                 if (!snap.exists() || !snap.data().months) {
-                    document.getElementById('table-body').innerHTML = '<tr><td>No data.</td></tr>';
+                    document.getElementById('table-body').innerHTML = '<tr><td colspan="100%">No data available.</td></tr>';
                     return;
                 }
                 allMonths = snap.data().months;
                 
                 renderSelectors();
 
-                // Logic: Find current month
-                const currentMonthName = new Date().toLocaleString('en-GB', { month: 'long' }).toUpperCase();
-                const foundIndex = allMonths.findIndex(m => m.name === currentMonthName);
+                const now = new Date();
+                const currentMonthName = now.toLocaleString('en-GB', { month: 'long' }).toUpperCase();
+                const currentYear = now.getFullYear().toString();
+                
+                const foundIndex = allMonths.findIndex(m => 
+                    m.name.toUpperCase().includes(currentMonthName) && 
+                    m.year.toString() === currentYear
+                );
+                
                 switchMonth(foundIndex !== -1 ? foundIndex : 0);
 
                 document.querySelectorAll('.reveal').forEach(r => r.classList.add('active'));
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Error loading timetable:", e); }
         }
 
         function renderSelectors() {
@@ -125,40 +162,66 @@
                 selectBox.appendChild(opt);
             });
 
-            selectBox.onchange = (e) => switchMonth(e.target.value);
+            selectBox.onchange = (e) => switchMonth(parseInt(e.target.value));
         }
 
         function switchMonth(index) {
             const monthData = allMonths[index];
             const lines = monthData.csv.split(/\r?\n/).filter(l => l.trim() !== '');
+            if (lines.length === 0) return;
+
             const headers = parseRow(lines[0]);
             const rows = lines.slice(1).map(l => parseRow(l));
 
             document.getElementById('table-head').innerHTML = headers.map(h => `<th>${h}</th>`).join('');
 
             const now = new Date();
-            const todayKey = `${String(now.getDate()).padStart(2, '0')}-${now.toLocaleString('en-GB', { month: 'short' }).toUpperCase()}`;
+            const isViewingCurrentMonth = monthData.name.toUpperCase().includes(now.toLocaleString('en-GB', { month: 'long' }).toUpperCase()) && 
+                                          monthData.year.toString() === now.getFullYear().toString();
+            
+            const todayDay = now.getDate();
+
+            // Find the index of the 'DATE' column
+            const dateColIndex = headers.findIndex(h => h.toUpperCase().includes('DATE'));
 
             let html = '';
             rows.forEach(row => {
-                const isToday = row.some(cell => cell.toUpperCase().includes(todayKey));
-                html += `<tr ${isToday ? 'class="row-highlight"' : ''}>${row.map(c => `<td>${c}</td>`).join('')}</tr>`;
+                // If DATE column exists, compare row value to today's date
+                let isToday = false;
+                if (isViewingCurrentMonth && dateColIndex !== -1) {
+                    const rowDateValue = parseInt(row[dateColIndex]);
+                    if (rowDateValue === todayDay) isToday = true;
+                }
+
+                const rowClass = isToday ? 'class="row-highlight"' : '';
+                html += `<tr ${rowClass}>`;
+                row.forEach((cell, i) => {
+                    // Add a visual indicator in the first column for today
+                    const indicator = (isToday && i === 0) ? '<div class="today-indicator"></div>' : '';
+                    html += `<td>${indicator}${cell}</td>`;
+                });
+                html += `</tr>`;
             });
 
             document.getElementById('table-body').innerHTML = html;
 
-            // UI Updates
+            // UI State Updates
             document.querySelectorAll('.btn-month').forEach((b, i) => b.classList.toggle('active', i == index));
             document.getElementById('month-dropdown-select').value = index;
 
-            // Scroll to today if in view
-            const todayRow = document.querySelector('.row-highlight');
-            if (todayRow) todayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Auto-scroll to current day
+            if (isViewingCurrentMonth) {
+                setTimeout(() => {
+                    const activeRow = document.querySelector('.row-highlight');
+                    if (activeRow) {
+                        activeRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 300);
+            }
         }
 
         window.addEventListener('DOMContentLoaded', loadData);
     </script>
-
     <script src="script.js"></script>
 </body>
 </html>

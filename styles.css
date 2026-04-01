@@ -69,19 +69,23 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    color: white; /* Default hero color */
+    color: white; 
     padding: 10px;
     transition: color 0.3s ease;
-    z-index: 1001;
+    /* FIX: Added position so z-index works */
+    position: relative; 
+    z-index: 2000; /* Higher than the nav-menu (1000) */
 }
 
 .menu-toggle svg {
     width: 28px;
     height: 28px;
+    display: block; /* Removes weird baseline spacing */
 }
 
-.navbar.scrolled .menu-toggle {
-    color: var(--text-main);
+.navbar.scrolled .menu-toggle,
+.mobile-active .menu-toggle {
+    color: var(--text-main) !important;
 }
 
 .nav-menu {
@@ -622,7 +626,7 @@ body {
         align-items: center;
         transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         gap: 25px;
-        z-index: 1000;
+        z-index: 1500;
         box-shadow: -10px 0 30px rgba(0,0,0,0.1);
     }
 

@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-
     <link rel="icon" type="image/png" href="assets/favicon.png">
     <style>
         .page-hero {
@@ -60,6 +59,7 @@
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 30px;
             margin-bottom: 40px;
+            min-height: 100px;
         }
 
         .event-card {
@@ -98,6 +98,7 @@
             font-weight: 700;
             font-size: 0.85rem;
             color: #d4af37;
+            z-index: 2;
         }
 
         .event-content { padding: 30px; flex-grow: 1; display: flex; flex-direction: column; }
@@ -110,6 +111,14 @@
             justify-content: space-between;
             padding-top: 20px;
             border-top: 1px solid #f0f0f0;
+        }
+
+        .event-time {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #666;
+            font-size: 0.9rem;
         }
 
         .btn-event-details { color: #d4af37; text-decoration: none; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; cursor: pointer; border: none; background: none; }
@@ -146,7 +155,6 @@
         .news-info p { color: #666; font-size: 0.9rem; line-height: 1.5; margin-bottom: 10px; }
         .news-meta { font-size: 0.75rem; color: #aaa; font-weight: 600; text-transform: uppercase; }
 
-        /* --- MODAL CSS --- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -154,7 +162,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
-            display: none; /* Hidden by default */
+            display: none;
             justify-content: center;
             align-items: center;
             z-index: 2000;
@@ -235,17 +243,15 @@
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="index.html"><img src="assets/logo.png" alt="YMC Logo" class="logo-img"></a>
-
             <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Menu">
                 <i data-lucide="menu"></i>
             </button>
-
-            <ul class="nav-menu">
+            <ul class="nav-menu" id="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="timetable.html">Timetable</a></li>
                 <li><a href="about.html">About</a></li>
                 <li><a href="events.html" style="color: #d4af37;">Events</a></li>
-                <li><a href="#">Services</a></li>
+                <li><a href="charity.html">Sadaqah</a></li>
                 <li><a href="contact.html">Contact</a></li>
                 <li><a href="donate.html" class="btn-donate">Du'a</a></li>
             </ul>
@@ -263,7 +269,7 @@
         </div>
         
         <div class="events-grid" id="events-container">
-            <!-- Data will load here -->
+            <p style="text-align: center; grid-column: 1/-1; color: #888;">Loading events...</p>
         </div>
 
         <div class="section-divider reveal active">
@@ -271,23 +277,19 @@
         </div>
 
         <div class="news-stack" id="news-container">
-            <!-- Data will load here -->
+            <p style="text-align: center; color: #888;">Loading news...</p>
         </div>
     </main>
 
-    <!-- POPUP MODAL -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-container">
             <button class="modal-close" onclick="closeModal()">
                 <i data-lucide="x"></i>
             </button>
-            <div class="modal-body" id="modalContent">
-                <!-- Content injected via JS -->
-            </div>
+            <div class="modal-body" id="modalContent"></div>
         </div>
     </div>
 
-    <!-- FIREBASE MODULE LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -304,7 +306,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Store data globally to access for modal
         let cloudData = { upcoming: {}, news: {} };
 
         async function loadCloudContent() {
@@ -313,61 +314,99 @@
 
             // 1. Load Events
             try {
-                const eventSnap = await getDocs(query(collection(db, "upcoming"), orderBy("createdAt", "desc")));
+                let eventSnap;
+                try {
+                    eventSnap = await getDocs(query(collection(db, "upcoming"), orderBy("createdAt", "desc")));
+                } catch (err) {
+                    console.warn("Ordered fetch failed, trying unordered:", err);
+                    eventSnap = await getDocs(collection(db, "upcoming"));
+                }
+
                 if (!eventSnap.empty) {
                     eventContainer.innerHTML = eventSnap.docs.map(doc => {
                         const event = doc.data();
-                        cloudData.upcoming[doc.id] = event; // Save for modal
+                        cloudData.upcoming[doc.id] = event;
                         const imgUrl = (event.images && event.images.length > 0) ? event.images[0] : 'assets/event-placeholder.jpg';
+                        const description = event.desc || '';
+                        
+                        // LOGIC FIX: Handle Display Date and Time for Recurring vs Normal
+                        let dateDisplay = "TBC";
+                        let timeDisplay = "TBC";
+
+                        if (event.isRecurring || event.recurring === "true" || event.recurring === true) {
+                            dateDisplay = event.recurrenceDay || "Weekly";
+                            timeDisplay = event.recurrenceTime || event.time || "TBC";
+                        } else {
+                            dateDisplay = event.date || "TBC";
+                            timeDisplay = event.time || "TBC";
+                        }
+
                         return `
                         <article class="event-card reveal active">
                             <div class="event-image">
-                                <div class="event-date-badge">${event.date || 'TBC'}</div>
+                                <div class="event-date-badge">${dateDisplay}</div>
                                 <img src="${imgUrl}" alt="${event.title}">
                             </div>
                             <div class="event-content">
-                                <h3>${event.title}</h3>
-                                <p>${event.desc.substring(0, 120)}${event.desc.length > 120 ? '...' : ''}</p>
+                                <h3>${event.title || 'Untitled Event'}</h3>
+                                <p>${description.substring(0, 120)}${description.length > 120 ? '...' : ''}</p>
                                 <div class="event-footer">
                                     <div class="event-time">
-                                        <i data-lucide="clock" style="width:16px;"></i> ${event.time || ''}
+                                        <i data-lucide="clock" style="width:16px;"></i> <span>${timeDisplay}</span>
                                     </div>
                                     <button onclick="openModal('upcoming', '${doc.id}')" class="btn-event-details">View Details <i data-lucide="chevron-right" style="width:16px;"></i></button>
                                 </div>
                             </div>
                         </article>`;
                     }).join('');
+                } else {
+                    eventContainer.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: #888;">No upcoming events at the moment.</p>';
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error("Error loading events:", e);
+                eventContainer.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: red;">Failed to load events.</p>';
+            }
 
             // 2. Load News
             try {
-                const newsSnap = await getDocs(query(collection(db, "news"), orderBy("createdAt", "desc")));
+                let newsSnap;
+                try {
+                    newsSnap = await getDocs(query(collection(db, "news"), orderBy("createdAt", "desc")));
+                } catch (err) {
+                    console.warn("Ordered news fetch failed, trying unordered:", err);
+                    newsSnap = await getDocs(collection(db, "news"));
+                }
+
                 if (!newsSnap.empty) {
                     newsContainer.innerHTML = newsSnap.docs.map(doc => {
                         const item = doc.data();
-                        cloudData.news[doc.id] = item; // Save for modal
+                        cloudData.news[doc.id] = item;
                         const imgUrl = (item.images && item.images.length > 0) ? item.images[0] : 'assets/event-placeholder.jpg';
                         return `
                         <article class="news-card reveal active">
                             <img src="${imgUrl}" alt="News" class="news-img">
                             <div class="news-info">
                                 <div class="news-meta">${item.date || 'Recent Update'}</div>
-                                <h3>${item.title}</h3>
+                                <h3>${item.title || 'Untitled News'}</h3>
                                 <p>${(item.desc || item.excerpt || '').substring(0, 150)}...</p>
                                 <button onclick="openModal('news', '${doc.id}')" class="btn-event-details">Read More <i data-lucide="arrow-right" style="width:16px;"></i></button>
                             </div>
                         </article>`;
                     }).join('');
+                } else {
+                    newsContainer.innerHTML = '<p style="text-align: center; color: #888;">No news items available.</p>';
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error("Error loading news:", e);
+                newsContainer.innerHTML = '<p style="text-align: center; color: red;">Failed to load news.</p>';
+            }
 
             if (window.lucide) lucide.createIcons();
         }
 
-        // Expose openModal to window so HTML buttons can see it
         window.openModal = (type, id) => {
             const data = cloudData[type][id];
+            if (!data) return;
             const modalOverlay = document.getElementById('modalOverlay');
             const modalContent = document.getElementById('modalContent');
 
@@ -378,15 +417,31 @@
                 </div>`;
             }
 
+            // LOGIC FIX: Modal date/time string construction
+            let modalDateDisplay = "";
+            let modalTimeDisplay = "";
+
+            if (type === 'upcoming') {
+                if (data.isRecurring || data.recurring === "true" || data.recurring === true) {
+                    modalDateDisplay = data.recurrenceDay || "Recurring Event";
+                    modalTimeDisplay = data.recurrenceTime || data.time || "TBC";
+                } else {
+                    modalDateDisplay = data.date || "Date TBC";
+                    modalTimeDisplay = data.time || "TBC";
+                }
+            } else {
+                modalDateDisplay = data.date || "Recent News";
+            }
+
             modalContent.innerHTML = `
-                <span class="modal-date">${data.date || ''} ${data.time ? ' | ' + data.time : ''}</span>
-                <h2>${data.title}</h2>
+                <span class="modal-date">${modalDateDisplay}${modalTimeDisplay ? ' | ' + modalTimeDisplay : ''}</span>
+                <h2>${data.title || 'Update'}</h2>
                 <div class="modal-desc">${data.desc || data.content || 'No description available.'}</div>
                 ${imagesHtml}
             `;
 
             modalOverlay.style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Stop scrolling background
+            document.body.style.overflow = 'hidden';
             if (window.lucide) lucide.createIcons();
         };
 
@@ -395,7 +450,6 @@
             document.body.style.overflow = 'auto';
         };
 
-        // Close on clicking background
         document.getElementById('modalOverlay').addEventListener('click', (e) => {
             if (e.target.id === 'modalOverlay') closeModal();
         });
@@ -404,7 +458,7 @@
     </script>
     
     <footer class="footer">
-        <p>&copy; 2026 Yardley Muslim Centre. All rights reserved.</p>
+        <p>© 2026 Yardley Muslim Centre. All rights reserved.</p>
     </footer>
 
     <script src="script.js"></script>
