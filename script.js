@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    // --- FORCE SCROLL TO TOP ON RELOAD ---
+    // This tells the browser NOT to remember the previous scroll position
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
     
     // Initialize Lucide Icons
     lucide.createIcons();
@@ -132,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 5. NEW: Fetch Timetable for Homepage ---
+    // --- 5. UPDATED: Fetch Timetable for Homepage (Corrected Indices) ---
     async function fetchTimetablePrayers() {
         try {
             if (!window.db) {
@@ -164,19 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const headers = parseRow(lines[0]);
             const dateColIndex = headers.findIndex(h => h.toUpperCase().includes('DATE'));
             
-            // Map common column names to our UI labels
-            const colMap = {
-                'FAJR': headers.findIndex(h => h.toUpperCase() === 'START' || h.toUpperCase() === 'FAJR'),
-                'SUNRISE': headers.findIndex(h => h.toUpperCase().includes('SUNRISE')),
-                'DHUHR': headers.findIndex(h => h.toUpperCase() === 'ZAWAL' || h.toUpperCase() === 'DHUHR'),
-                'ASR': headers.findIndex(h => h.toUpperCase() === 'START' && headers[headers.indexOf(h)+1]?.toUpperCase() === 'JUMMAH' ? false : h.toUpperCase() === 'ASR'), // Logic depends on your CSV order
-                'MAGHRIB': headers.findIndex(h => h.toUpperCase().includes('MAGHRIB')),
-                'ISHA': headers.findIndex(h => h.toUpperCase() === 'ISHA' || (h.toUpperCase() === 'START' && headers.indexOf(h) > 10))
-            };
-
-            // Manual index override based on your screenshot if headers are ambiguous:
-            // Day=0, Shawwal=1, Date=2, FajrStart=3, FajrJam=4, Sunrise=5, DhuhrStart=6, ...
-            const fajrIdx = 3, sunIdx = 5, dhuhrIdx = 6, asrIdx = 8, magIdx = 10, ishaIdx = 11;
+            // CORRECTED INDICES BASED ON TIMETABLE SCREENSHOT:
+            // 3:FajrStart, 5:Sunrise, 7:ZuhrStart, 9:AsrStart, 11:Maghrib, 12:IshaStart
+            const fajrIdx = 3, sunIdx = 5, dhuhrIdx = 7, asrIdx = 9, magIdx = 11, ishaIdx = 12;
 
             const todayRow = lines.slice(1).map(parseRow).find(row => parseInt(row[dateColIndex]) === todayDay);
 
@@ -195,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const pName = card.dataset.prayer;
                     if (todayPrayerData[pName]) {
                         const timeSpan = card.querySelector('.time');
-                        // Format time to add AM/PM if missing (optional)
                         timeSpan.innerText = todayPrayerData[pName];
                     }
                 });
@@ -247,28 +243,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const now = new Date();
         const totalMins = now.getHours() * 60 + now.getMinutes();
-        
         const names = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
         
-        // Helper to convert "5.06" or "05:06" to minutes
-        const timeToMins = (tStr) => {
-            const parts = tStr.replace('.', ':').split(':');
-            let h = parseInt(parts[0]);
-            let m = parseInt(parts[1]);
-            // Simple PM adjustment logic if using 12h format without AM/PM markers in CSV
-            if (h < 12 && (names.indexOf(currentLabel) > 2)) h += 12; 
-            return h * 60 + m;
-        };
-
         let currentLabel = 'Isha';
         let nextIndex = 0;
 
-        // Compare current time to the fetched data
         for (let i = 0; i < names.length; i++) {
             const pTime = todayPrayerData[names[i]];
             if (!pTime) continue;
             
-            const pMins = timeToMins(pTime);
+            // Helper to convert "5.06" or "05:06" to minutes with PM adjustment
+            const parts = pTime.replace('.', ':').split(':');
+            let h = parseInt(parts[0]);
+            let m = parseInt(parts[1]);
+
+            // PM adjustment: If h is small (1-9) and it's Dhuhr or later, add 12 hours
+            if (h < 12 && i >= 2) h += 12; 
+
+            const pMins = h * 60 + m;
+
             if (totalMins >= pMins) {
                 currentLabel = names[i];
                 nextIndex = (i + 1) % names.length;
@@ -316,19 +309,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-});
 
-// --- 9. Hidden Admin Access Logic ---
+    // --- 9. Hidden Admin Access Logic ---
     const staffLink = document.getElementById('staff-portal-link');
     if (staffLink) {
         let portalClicks = 0;
         let portalTimer;
 
-        // Multi-click logic (5 clicks)
         staffLink.addEventListener('click', (e) => {
-            // Prevent regular click from working immediately if you want it purely hidden
-            // e.preventDefault(); 
-
             portalClicks++;
             clearTimeout(portalTimer);
             
@@ -336,21 +324,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = "login.html";
             }
 
-            // Reset counter if user stops clicking for 2 seconds
             portalTimer = setTimeout(() => {
                 portalClicks = 0;
             }, 2000);
         });
 
-        // Long press logic for Mobile
         let pressTimer;
         staffLink.addEventListener('touchstart', () => {
             pressTimer = setTimeout(() => {
                 window.location.href = "login.html";
-            }, 3000); // 3 second hold
+            }, 3000); 
         });
 
         staffLink.addEventListener('touchend', () => {
             clearTimeout(pressTimer);
         });
     }
+});
