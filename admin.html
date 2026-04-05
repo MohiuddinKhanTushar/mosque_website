@@ -10,50 +10,139 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link rel="icon" type="image/png" href="assets/favicon.png">
     <style>
-        :root { --sidebar-width: 220px; --bg-admin: #f9f9f9; --accent: #d4af37; --text-main: #1a1a1a; }
-        body { background: var(--bg-admin); display: flex; min-height: 100vh; font-family: 'Inter', sans-serif; color: var(--text-main); margin: 0; }
-        .sidebar { width: var(--sidebar-width); background: white; border-right: 1px solid rgba(0,0,0,0.05); padding: 40px 15px; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; box-sizing: border-box; }
+        :root { 
+            --sidebar-width: 240px; 
+            --bg-admin: #f9f9f9; 
+            --accent: #d4af37; 
+            --text-main: #1a1a1a; 
+        }
+
+        body { 
+            background: var(--bg-admin); 
+            display: flex; 
+            min-height: 100vh; 
+            font-family: 'Inter', sans-serif; 
+            color: var(--text-main); 
+            margin: 0; 
+            overflow-x: hidden;
+        }
+
+        /* --- Sidebar & Layout --- */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: white; 
+            border-right: 1px solid rgba(0,0,0,0.05); 
+            padding: 40px 15px; 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            height: 100vh; 
+            z-index: 1000; 
+            box-sizing: border-box; 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .sidebar-logo { margin-bottom: 50px; padding: 0 10px; text-align: center; }
         .sidebar-logo img { width: 100%; max-width: 120px; height: auto; }
+        
         .nav-group { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: #666; cursor: pointer; border-radius: 12px; font-size: 0.9rem; font-weight: 500; }
+        .nav-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px 15px; 
+            color: #666; 
+            cursor: pointer; 
+            border-radius: 12px; 
+            font-size: 0.9rem; 
+            font-weight: 500; 
+            transition: 0.2s;
+        }
+        .nav-item:hover { background: #f5f5f5; }
         .nav-item.active { background: rgba(212, 175, 55, 0.1); color: var(--accent); }
-        .main-content { margin-left: var(--sidebar-width); flex: 1; padding: 40px 60px; max-width: 1400px; }
-        header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
-        .admin-card { background: white; padding: 32px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.04); margin-bottom: 30px; }
+
+        .main-content { 
+            margin-left: var(--sidebar-width); 
+            flex: 1; 
+            padding: 40px 60px; 
+            width: calc(100% - var(--sidebar-width));
+            box-sizing: border-box;
+        }
+
+        /* --- Mobile Controls --- */
+        .mobile-header-btns { display: none; align-items: center; gap: 10px; }
+        .mobile-toggle, .mobile-close { 
+            background: white; 
+            border: 1px solid #eee; 
+            padding: 10px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mobile-close { position: absolute; top: 20px; right: 15px; display: none; }
+
+        /* --- Components --- */
+        .admin-card { 
+            background: white; 
+            padding: 32px; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02); 
+            border: 1px solid rgba(0,0,0,0.04); 
+            margin-bottom: 30px; 
+        }
+
         .btn-primary { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-outline { background: transparent; border: 1.5px solid #eee; color: #555; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; }
-        .sub-nav { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+
+        .sub-nav { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; overflow-x: auto; white-space: nowrap; }
         .sub-btn { border: none; background: none; padding: 8px 16px; cursor: pointer; font-weight: 500; color: #888; border-radius: 8px; }
         .sub-btn.active { background: #f0f0f0; color: var(--text-main); }
-        .cms-table-container { width: 100%; overflow-x: auto; margin-top: 10px; border-radius: 12px; border: 1px solid #eee; }
+
+        .cms-table-container { width: 100%; overflow-x: auto; border-radius: 12px; border: 1px solid #eee; }
         .cms-table { width: 100%; border-collapse: collapse; min-width: 600px; }
         .cms-table th { text-align: left; padding: 12px; background: #fcfcfc; color: #aaa; font-weight: 500; border-bottom: 1px solid #eee; }
         .cms-table td { padding: 12px; border-bottom: 1px solid #f5f5f5; font-size: 0.85rem; }
+
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
-        .arabic-input { font-family: 'Amiri', serif; font-size: 1.2rem; direction: rtl; }
+
         .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .mini-card { background: #fcfcfc; border: 1px solid #eee; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; }
-        .mini-card-content { padding: 20px; flex: 1; }
         .mini-card img { width: 100%; height: 160px; object-fit: cover; border-bottom: 1px solid #eee; }
-        .tab-content { display: none; }
-        .active-tab { display: block; }
+        .mini-card-content { padding: 20px; flex: 1; }
+
+        /* --- Modals --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
-        .modal-content { background: white; width: 95%; max-width: 1200px; max-height: 90vh; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-        .modal-header { padding: 24px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-content { background: white; width: 95%; max-width: 1200px; max-height: 90vh; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; }
         .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
-        .modal-footer { padding: 20px 24px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 12px; }
-        .edit-input { width: 100%; border: 1px solid transparent; background: #f9f9f9; padding: 8px; border-radius: 6px; font-size: 0.85rem; }
-        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        #recurrence-details-box { background: #fff9e6; padding: 15px; border-radius: 12px; border: 1px solid #f0e0b0; margin-bottom: 20px; }
+
+        /* --- Responsive Queries --- */
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); padding-top: 60px; }
+            .sidebar.open { transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.1); }
+            .main-content { margin-left: 0; width: 100%; padding: 30px 20px; }
+            .mobile-header-btns { display: flex; }
+            .mobile-close { display: flex; }
+            .sidebar-logo { margin-bottom: 30px; }
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .admin-card { padding: 20px; }
+            .data-grid { grid-template-columns: 1fr; }
+            .btn-primary, .btn-outline { width: 100%; text-align: center; }
+            .timetable-controls { grid-template-columns: 1fr !important; }
+        }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
+        <button class="mobile-close" onclick="toggleSidebar()"><i data-lucide="x"></i></button>
         <div class="sidebar-logo"><img src="assets/logo.png" alt="YMC"></div>
         <nav class="nav-group">
             <div class="nav-item active" id="nav-timetable" onclick="showTab('timetable', this)"><i data-lucide="calendar"></i> Timetable</div>
@@ -66,13 +155,21 @@
 
     <main class="main-content">
         <header>
-            <div><h1 id="page-title">Manage Timetable</h1><p id="page-desc">Admin control panel</p></div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="mobile-header-btns">
+                    <button class="mobile-toggle" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+                </div>
+                <div>
+                    <h1 id="page-title" style="margin:0; font-size: 1.5rem;">Manage Timetable</h1>
+                    <p id="page-desc" style="margin:0; color: #888; font-size: 0.9rem;">Admin control panel</p>
+                </div>
+            </div>
         </header>
 
         <section id="tab-timetable" class="tab-content active-tab">
             <div class="admin-card">
                 <h3>Upload New Month</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
+                <div class="timetable-controls" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
                     <div class="form-group" style="margin:0"><label>Month Name</label><input type="text" id="monthName" placeholder="e.g. April"></div>
                     <div class="form-group" style="margin:0"><label>Year</label><input type="number" id="monthYear" value="2026"></div>
                     <input type="file" id="csvFileInput" accept=".csv" hidden onchange="handleCSVSelect(this)">
@@ -87,81 +184,64 @@
             </div>
         </section>
 
-        <section id="tab-events" class="tab-content">
+        <section id="tab-events" class="tab-content" style="display:none;">
             <div class="admin-card">
                 <div class="sub-nav">
                     <button class="sub-btn active" id="btn-sub-upcoming" onclick="setSubMode('upcoming')">Upcoming Events</button>
                     <button class="sub-btn" id="btn-sub-news" onclick="setSubMode('news')">Latest News</button>
                 </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                    <h3 id="event-list-title">Active Items</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap: wrap; gap:10px;">
+                    <h3 id="event-list-title" style="margin:0;">Active Items</h3>
                     <button class="btn-primary" onclick="toggleForm('event')">+ Add New</button>
                 </div>
                 
                 <div id="event-form" style="display:none; margin-bottom:30px; border:1px solid #eee; padding:25px; border-radius:15px; background:#fcfcfc;">
                     <div class="form-group"><label>Title</label><input type="text" id="eventTitle"></div>
                     <div class="form-group"><label>Description</label><textarea id="eventDesc" rows="4"></textarea></div>
-                    
-                    <div id="event-recurrence-toggle" class="checkbox-group">
+                    <div id="event-recurrence-toggle" class="checkbox-group" style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
                         <input type="checkbox" id="isRecurring" onchange="toggleRecurrenceFields()">
                         <label for="isRecurring" style="margin:0">Recurring Event (repeats regularly)</label>
                     </div>
-
                     <div id="event-date-time-fields" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                         <div class="form-group"><label>Event Date</label><input type="date" id="eventDate"></div>
                         <div class="form-group"><label>Event Time</label><input type="text" id="eventTime" placeholder="e.g. 7:00 PM"></div>
                     </div>
-
                     <div id="event-recurring-field" style="display:none;">
-                        <div id="recurrence-details-box">
+                        <div id="recurrence-details-box" style="background:#fff9e6; padding:15px; border-radius:12px; border:1px solid #f0e0b0; margin-bottom:20px;">
                             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                                <div class="form-group">
-                                    <label>Frequency</label>
+                                <div class="form-group"><label>Frequency</label>
                                     <select id="recurrenceType">
                                         <option value="Daily">Daily</option>
                                         <option value="Weekly" selected>Weekly</option>
                                         <option value="Monthly">Monthly</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label>Day / Details</label>
-                                    <input type="text" id="recurrenceDay" placeholder="e.g. Every Friday">
-                                </div>
+                                <div class="form-group"><label>Day / Details</label><input type="text" id="recurrenceDay" placeholder="e.g. Every Friday"></div>
                             </div>
-                            <div class="form-group" style="margin-bottom:0">
-                                <label>Time</label>
-                                <input type="text" id="recurrenceTime" placeholder="e.g. 1:00 PM">
-                            </div>
+                            <div class="form-group" style="margin-bottom:0"><label>Time</label><input type="text" id="recurrenceTime" placeholder="e.g. 1:00 PM"></div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Images</label>
-                        <input type="file" id="eventImages" multiple accept="image/*">
-                    </div>
+                    <div class="form-group"><label>Images</label><input type="file" id="eventImages" multiple accept="image/*"></div>
                     <div style="display:flex; gap:10px; margin-top:10px;">
                         <button class="btn-primary" id="saveEventBtn" onclick="uploadEvent()">Save Item</button>
                         <button class="btn-outline" onclick="toggleForm('event')">Cancel</button>
                     </div>
                 </div>
-
                 <div class="data-grid" id="events-grid"></div>
             </div>
         </section>
 
-        <section id="tab-charity" class="tab-content">
+        <section id="tab-charity" class="tab-content" style="display:none;">
             <div class="admin-card">
-                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                    <h3>Sadaqah Projects</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                    <h3 style="margin:0;">Sadaqah Projects</h3>
                     <button class="btn-primary" onclick="toggleForm('charity')">+ Add Project</button>
                 </div>
                 <div id="charity-form" style="display:none; margin-bottom:30px; border:1px solid #eee; padding:25px; border-radius:15px; background:#fcfcfc;">
                     <div class="form-group"><label>Project Name</label><input type="text" id="charName"></div>
                     <div class="form-group"><label>Description</label><textarea id="charDesc" rows="3"></textarea></div>
                     <div class="form-group"><label>Target Amount (£)</label><input type="number" id="charTarget"></div>
-                    <div class="form-group">
-                        <label>Project Images</label>
-                        <input type="file" id="charImages" multiple accept="image/*">
-                    </div>
+                    <div class="form-group"><label>Project Images</label><input type="file" id="charImages" multiple accept="image/*"></div>
                     <div style="display:flex; gap:10px;">
                         <button class="btn-primary" id="saveCharityBtn" onclick="uploadCharity()">Save Project</button>
                         <button class="btn-outline" onclick="toggleForm('charity')">Cancel</button>
@@ -171,18 +251,18 @@
             </div>
         </section>
 
-        <section id="tab-quotes" class="tab-content">
+        <section id="tab-quotes" class="tab-content" style="display:none;">
             <div class="admin-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h3>Active Quotes</h3>
-                    <div style="display:flex; gap:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                    <h3 style="margin:0;">Active Quotes</h3>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; width:100%; justify-content: flex-end;">
                         <input type="file" id="quoteCsvInput" accept=".csv" hidden onchange="handleQuoteBulkUpload(this)">
-                        <button class="btn-outline" onclick="document.getElementById('quoteCsvInput').click()"><i data-lucide="file-up" style="width:16px; height:16px; vertical-align:middle; margin-right:5px;"></i> Bulk CSV</button>
+                        <button class="btn-outline" onclick="document.getElementById('quoteCsvInput').click()"><i data-lucide="file-up"></i> Bulk CSV</button>
                         <button class="btn-primary" onclick="toggleForm('quote')">+ Add Single</button>
                     </div>
                 </div>
                 <div id="quote-form" style="display:none; margin-bottom:30px; border-bottom:1px solid #eee; padding-bottom:20px;">
-                    <div class="form-group"><label>Arabic</label><input type="text" id="qArabic" class="arabic-input"></div>
+                    <div class="form-group"><label>Arabic</label><input type="text" id="qArabic" class="arabic-input" style="font-family: 'Amiri', serif; font-size: 1.2rem; direction: rtl;"></div>
                     <div class="form-group"><label>English</label><textarea id="qEnglish"></textarea></div>
                     <div class="form-group"><label>Reference</label><input type="text" id="qRef"></div>
                     <div style="display:flex; gap:10px;">
@@ -202,12 +282,12 @@
 
     <div id="editorModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Edit Timetable</h3>
+            <div class="modal-header" style="padding: 24px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="modalTitle" style="margin:0">Edit Timetable</h3>
                 <button class="btn-outline" onclick="closeEditor()">✕</button>
             </div>
             <div class="modal-body"><div id="modal-table-container" class="cms-table-container"></div></div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="padding: 20px 24px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 12px;">
                 <button class="btn-outline" onclick="closeEditor()">Cancel</button>
                 <button class="btn-primary" onclick="saveEdits()">Save & Sync</button>
             </div>
@@ -237,8 +317,30 @@
         let globalMonths = [];
         let editingIndex = null;
 
-        // --- COMMON UTILITIES ---
+        // --- UI HELPERS ---
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        };
 
+        window.showTab = (tabId, el) => {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.getElementById('tab-'+tabId).style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('page-title').innerText = "Manage " + tabId.charAt(0).toUpperCase() + tabId.slice(1);
+            
+            if(window.innerWidth <= 1024) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+
+            if(tabId === 'timetable') fetchActiveMonths();
+            if(tabId === 'events') fetchEvents();
+            if(tabId === 'charity') fetchCharity();
+            if(tabId === 'quotes') fetchQuotes();
+        };
+
+        // --- COMMON UTILITIES ---
         const uploadFiles = async (files, folder) => {
             const urls = [];
             for (const file of files) {
@@ -253,30 +355,24 @@
 
         window.deleteDocItem = async (col, id) => {
             if(!confirm("Are you sure? This will also remove any images from storage.")) return;
-            
             try {
                 const docRef = doc(db, col, id);
                 const snap = await getDoc(docRef);
-                
                 if (snap.exists()) {
                     const data = snap.data();
                     if (data.images && Array.isArray(data.images)) {
                         const deletePromises = data.images.map(url => {
                             const imageRef = ref(storage, url);
-                            return deleteObject(imageRef).catch(e => console.warn("Image delete failed (may not exist):", e));
+                            return deleteObject(imageRef).catch(e => console.warn("Image delete failed:", e));
                         });
                         await Promise.all(deletePromises);
                     }
                 }
-
                 await deleteDoc(docRef);
-                
                 if(col === 'upcoming' || col === 'news') fetchEvents();
                 if(col === 'charity') fetchCharity();
                 if(col === 'quotes') fetchQuotes();
-            } catch (err) {
-                alert("Deletion error: " + err.message);
-            }
+            } catch (err) { alert("Deletion error: " + err.message); }
         };
 
         window.toggleForm = (type) => {
@@ -284,20 +380,7 @@
             form.style.display = form.style.display === 'none' ? 'block' : 'none';
         };
 
-        window.showTab = (tabId, el) => {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
-            document.getElementById('tab-'+tabId).classList.add('active-tab');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('page-title').innerText = "Manage " + tabId.charAt(0).toUpperCase() + tabId.slice(1);
-            if(tabId === 'timetable') fetchActiveMonths();
-            if(tabId === 'events') fetchEvents();
-            if(tabId === 'charity') fetchCharity();
-            if(tabId === 'quotes') fetchQuotes();
-        };
-
         // --- TIMETABLE LOGIC ---
-
         async function fetchActiveMonths() {
             const container = document.getElementById('active-months-container');
             const snap = await getDoc(doc(db, "settings", "timetable"));
@@ -306,7 +389,7 @@
                 container.innerHTML = globalMonths.map((m, i) => `
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:18px; background:#fff; border:1px solid #eee; border-radius:15px; margin-bottom:12px; cursor:pointer;" onclick="openEditor(${i})">
                         <div><strong>${m.name} ${m.year}</strong><br><span style="font-size:0.75rem; color:var(--accent)">Click to edit timetable</span></div>
-                        <button class="btn-outline" style="color:red" onclick="event.stopPropagation(); deleteMonth(${i})">Delete</button>
+                        <button class="btn-outline" style="color:red; border-color:rgba(255,0,0,0.1)" onclick="event.stopPropagation(); deleteMonth(${i})">Delete</button>
                     </div>
                 `).join('') || '<p>No months uploaded yet.</p>';
             }
@@ -325,7 +408,7 @@
                 const cols = rows[i].split(',');
                 tableHtml += '<tr>';
                 cols.forEach(col => {
-                    tableHtml += `<td><input type="text" class="edit-input" value="${col.replace(/"/g, '')}"></td>`;
+                    tableHtml += `<td><input type="text" class="edit-input" style="width:100%; border:1px solid transparent; background:#f9f9f9; padding:8px; border-radius:6px;" value="${col.replace(/"/g, '')}"></td>`;
                 });
                 tableHtml += '</tr>';
             }
@@ -359,7 +442,7 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 pendingCSVData = e.target.result;
-                document.getElementById('timetable-preview').innerHTML = `<p style="padding:10px; color:green;">CSV Ready</p>`;
+                document.getElementById('timetable-preview').innerHTML = `<p style="padding:10px; color:green;">CSV Ready: ${file.name}</p>`;
                 document.getElementById('saveTimetableBtn').disabled = false;
             };
             reader.readAsText(file);
@@ -368,20 +451,22 @@
         window.syncTimetable = async () => {
             const m = document.getElementById('monthName').value.toUpperCase();
             const y = document.getElementById('monthYear').value;
+            if(!m) return alert("Please enter a month name");
             const newObj = { name: m, year: y, csv: pendingCSVData, addedAt: new Date() };
             await updateDoc(doc(db, "settings", "timetable"), { months: arrayUnion(newObj) });
             fetchActiveMonths();
+            document.getElementById('saveTimetableBtn').disabled = true;
+            document.getElementById('timetable-preview').innerHTML = "";
         };
 
         window.deleteMonth = async (index) => {
-            if(!confirm("Delete?")) return;
+            if(!confirm("Delete this month?")) return;
             globalMonths.splice(index, 1);
             await updateDoc(doc(db, "settings", "timetable"), { months: globalMonths });
             fetchActiveMonths();
         };
 
         // --- EVENTS LOGIC ---
-
         window.setSubMode = (mode) => {
             currentSubMode = mode;
             document.querySelectorAll('#tab-events .sub-btn').forEach(b => b.classList.toggle('active', b.id.includes(mode)));
@@ -486,21 +571,17 @@
 
                 await addDoc(collection(db, col), payload);
                 toggleForm('event'); fetchEvents();
-                // Reset fields
                 document.getElementById('eventTitle').value = ""; document.getElementById('eventDesc').value = "";
                 document.getElementById('eventDate').value = ""; document.getElementById('eventTime').value = "";
                 document.getElementById('isRecurring').checked = false; document.getElementById('eventImages').value = "";
                 toggleRecurrenceFields();
-            } catch (err) {
-                alert("Upload failed: " + err.message);
-            } finally {
+            } catch (err) { alert("Upload failed: " + err.message); } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerText = "Save Item";
             }
         };
 
         // --- CHARITY LOGIC ---
-
         async function fetchCharity() {
             const grid = document.getElementById('charity-grid');
             const snap = await getDocs(collection(db, "charity"));
@@ -518,7 +599,7 @@
                         <button class="btn-outline" style="color:red; width:100%" onclick="deleteDocItem('charity', '${d.id}')">Delete</button>
                     </div>
                 </div>
-            `}).join('');
+            `}).join('') || '<p>No projects found.</p>';
             lucide.createIcons();
         }
 
@@ -529,7 +610,7 @@
             const fileInput = document.getElementById('charImages');
             const saveBtn = document.getElementById('saveCharityBtn');
 
-            if(!title) return;
+            if(!title) return alert("Title required");
             
             try {
                 saveBtn.disabled = true;
@@ -542,16 +623,13 @@
                 toggleForm('charity'); fetchCharity();
                 document.getElementById('charName').value = ""; document.getElementById('charDesc').value = "";
                 document.getElementById('charTarget').value = ""; document.getElementById('charImages').value = "";
-            } catch (err) {
-                alert("Upload failed: " + err.message);
-            } finally {
+            } catch (err) { alert("Upload failed: " + err.message); } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerText = "Save Project";
             }
         };
 
         // --- QUOTES LOGIC ---
-
         async function fetchQuotes() {
             const tbody = document.getElementById('quote-table-body');
             const snap = await getDocs(query(collection(db, "quotes"), orderBy("createdAt", "desc")));
@@ -569,33 +647,26 @@
             if(!arabic || !english) return alert("Arabic and English text required");
             
             await addDoc(collection(db, "quotes"), { arabic, english, reference, createdAt: new Date() });
-            
-            // Clear inputs
             document.getElementById('qArabic').value = "";
             document.getElementById('qEnglish').value = "";
             document.getElementById('qRef').value = "";
-            
             toggleForm('quote'); fetchQuotes();
         };
 
-        // Bulk Quote Upload Logic
         window.handleQuoteBulkUpload = (input) => {
             const file = input.files[0];
             if (!file) return;
-
             Papa.parse(file, {
                 header: true,
                 skipEmptyLines: true,
                 complete: async (results) => {
                     const quotes = results.data;
                     if (quotes.length === 0) return alert("CSV is empty");
-
                     try {
                         const batchSize = 500;
                         for (let i = 0; i < quotes.length; i += batchSize) {
                             const batch = writeBatch(db);
                             const chunk = quotes.slice(i, i + batchSize);
-
                             chunk.forEach(q => {
                                 const newDocRef = doc(collection(db, "quotes"));
                                 batch.set(newDocRef, {
@@ -609,16 +680,13 @@
                         }
                         alert(`Successfully uploaded ${quotes.length} quotes.`);
                         fetchQuotes();
-                    } catch (err) {
-                        alert("Bulk upload failed: " + err.message);
-                    }
-                    input.value = ""; // Clear file picker
+                    } catch (err) { alert("Bulk upload failed: " + err.message); }
+                    input.value = ""; 
                 }
             });
         };
 
         // --- AUTH & INIT ---
-
         window.logout = () => { sessionStorage.clear(); location.href="login.html"; };
 
         window.addEventListener('DOMContentLoaded', () => {
