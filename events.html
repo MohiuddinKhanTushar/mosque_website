@@ -238,7 +238,6 @@
             transform: scale(1.02);
         }
 
-        /* --- LIGHTBOX STYLES (IMAGE ZOOM) --- */
         #lightboxOverlay {
             z-index: 10000;
             background: rgba(0,0,0,0.95);
@@ -305,7 +304,7 @@
         </div>
         
         <div class="events-grid" id="events-container">
-            <p style="text-align: center; grid-column: 1/-1; color: #888;">No Event Items Available</p>
+            <p style="text-align: center; grid-column: 1/-1; color: #888;">Loading events...</p>
         </div>
 
         <div class="section-divider reveal active">
@@ -313,7 +312,7 @@
         </div>
 
         <div class="news-stack" id="news-container">
-            <p style="text-align: center; color: #888;">No News Items Available</p>
+            <p style="text-align: center; color: #888;">Loading news...</p>
         </div>
     </main>
 
@@ -348,34 +347,18 @@
 
         let cloudData = { upcoming: {}, news: {} };
 
-        // Burger Menu
-        const menuToggle = document.getElementById('menu-toggle');
-        const navLinks = document.getElementById('nav-links');
-        if(menuToggle) {
-            menuToggle.addEventListener('click', () => {
-                navLinks.classList.toggle('active');
-            });
-        }
-
         async function loadCloudContent() {
             const eventContainer = document.getElementById('events-container');
             const newsContainer = document.getElementById('news-container');
 
             try {
-                let eventSnap;
-                try {
-                    eventSnap = await getDocs(query(collection(db, "upcoming"), orderBy("createdAt", "desc")));
-                } catch (err) {
-                    eventSnap = await getDocs(collection(db, "upcoming"));
-                }
-
+                let eventSnap = await getDocs(query(collection(db, "upcoming"), orderBy("createdAt", "desc")));
                 if (!eventSnap.empty) {
                     eventContainer.innerHTML = eventSnap.docs.map(doc => {
                         const event = doc.data();
                         cloudData.upcoming[doc.id] = event;
                         const imgUrl = (event.images && event.images.length > 0) ? event.images[0] : 'assets/event-placeholder.jpg';
                         const description = event.desc || '';
-                        
                         let dateDisplay = event.isRecurring ? (event.recurrenceDay || "Weekly") : (event.date || "TBC");
                         let timeDisplay = event.time || (event.recurrenceTime || "TBC");
 
@@ -397,17 +380,13 @@
                             </div>
                         </article>`;
                     }).join('');
+                } else {
+                    eventContainer.innerHTML = `<p style="text-align: center; grid-column: 1/-1; color: #888;">No Event Items Available</p>`;
                 }
             } catch (e) { console.error(e); }
 
             try {
-                let newsSnap;
-                try {
-                    newsSnap = await getDocs(query(collection(db, "news"), orderBy("createdAt", "desc")));
-                } catch (err) {
-                    newsSnap = await getDocs(collection(db, "news"));
-                }
-
+                let newsSnap = await getDocs(query(collection(db, "news"), orderBy("createdAt", "desc")));
                 if (!newsSnap.empty) {
                     newsContainer.innerHTML = newsSnap.docs.map(doc => {
                         const item = doc.data();
@@ -424,12 +403,15 @@
                             </div>
                         </article>`;
                     }).join('');
+                } else {
+                    newsContainer.innerHTML = `<p style="text-align: center; color: #888;">No News Items Available</p>`;
                 }
             } catch (e) { console.error(e); }
 
             if (window.lucide) lucide.createIcons();
         }
 
+        // Expose functions to the window so buttons can find them
         window.openModal = (type, id) => {
             const data = cloudData[type][id];
             if (!data) return;
@@ -461,7 +443,6 @@
             document.body.style.overflow = 'auto';
         };
 
-        // Lightbox Functions
         window.openLightbox = (src) => {
             const lightbox = document.getElementById('lightboxOverlay');
             const img = document.getElementById('lightboxImg');
