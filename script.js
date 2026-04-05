@@ -1,19 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- FORCE SCROLL TO TOP ON RELOAD ---
-    // This tells the browser NOT to remember the previous scroll position
     if ('scrollRestoration' in history) {
         history.scrollRestoration = 'manual';
     }
     window.scrollTo(0, 0);
     
-    // Initialize Lucide Icons
     lucide.createIcons();
     
     const nav = document.getElementById('navbar');
     const audio = document.getElementById('bg-audio');
     let lastScrollY = window.scrollY;
-    let todayPrayerData = null; // Global storage for today's times
+    let todayPrayerData = null;
 
     // --- URL Force Reset Logic ---
     if (window.location.search.includes('reset=true')) {
@@ -21,23 +19,25 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('lastQuoteDate');
     }
 
-    // 1. Audio "Unlock" Logic
-    const unlockAudio = () => {
+    // 1. Robust Audio Persistence Logic
+    const startGlobalAudio = () => {
         if (!audio) return;
-        audio.play().then(() => {
-            audio.pause(); 
-            audio.currentTime = 0;
-            window.removeEventListener('click', unlockAudio);
-            window.removeEventListener('touchstart', unlockAudio);
-        }).catch(e => console.log("Audio interaction pending"));
+        if (audio.paused) {
+            audio.play().then(() => {
+                window.removeEventListener('click', startGlobalAudio);
+                window.removeEventListener('touchstart', startGlobalAudio);
+                window.removeEventListener('scroll', startGlobalAudio);
+            }).catch(e => console.log("Audio interaction pending..."));
+        }
     };
-    window.addEventListener('click', unlockAudio);
-    window.addEventListener('touchstart', unlockAudio);
+
+    window.addEventListener('click', startGlobalAudio);
+    window.addEventListener('touchstart', startGlobalAudio);
+    window.addEventListener('scroll', startGlobalAudio, { once: true });
 
     // 2. Navbar Scroll Logic
     const handleScroll = () => {
         const currentScrollY = window.scrollY;
-        
         if (currentScrollY > 10) {
             nav.classList.add('scrolled');
         } else {
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 5. UPDATED: Fetch Timetable for Homepage (Corrected Indices) ---
+    // 5. Fetch Timetable for Homepage
     async function fetchTimetablePrayers() {
         try {
             if (!window.db) {
@@ -171,10 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const headers = parseRow(lines[0]);
             const dateColIndex = headers.findIndex(h => h.toUpperCase().includes('DATE'));
             
-            // CORRECTED INDICES BASED ON TIMETABLE SCREENSHOT:
-            // 3:FajrStart, 5:Sunrise, 7:ZuhrStart, 9:AsrStart, 11:Maghrib, 12:IshaStart
             const fajrIdx = 3, sunIdx = 5, dhuhrIdx = 7, asrIdx = 9, magIdx = 11, ishaIdx = 12;
-
             const todayRow = lines.slice(1).map(parseRow).find(row => parseInt(row[dateColIndex]) === todayDay);
 
             if (todayRow) {
@@ -187,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Isha': todayRow[ishaIdx]
                 };
 
-                // Update UI
                 document.querySelectorAll('.prayer-card').forEach(card => {
                     const pName = card.dataset.prayer;
                     if (todayPrayerData[pName]) {
@@ -208,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const quranObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                if (audio) audio.play().catch(() => {});
                 entry.target.querySelectorAll('.reveal-type, .reveal').forEach(el => {
                     el.classList.add('visible');
                 });
@@ -237,50 +232,87 @@ document.addEventListener('DOMContentLoaded', () => {
     const revealElements = document.querySelectorAll('.prayer-card, .next-prayer-status, .reveal, .reminder-card, .partners-grid, .footer');
     revealElements.forEach(el => generalObserver.observe(el));
 
-    // 7. Prayer Highlighting
+    // 7. UPDATED: Prayer Highlighting & Countdown Logic
     function highlightPrayer() {
         if (!todayPrayerData) return;
 
         const now = new Date();
-        const totalMins = now.getHours() * 60 + now.getMinutes();
+        const totalMinsNow = now.getHours() * 60 + now.getMinutes();
         const names = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
         
         let currentLabel = 'Isha';
         let nextIndex = 0;
+        let nextPrayerTimeMins = 0;
 
         for (let i = 0; i < names.length; i++) {
             const pTime = todayPrayerData[names[i]];
             if (!pTime) continue;
             
-            // Helper to convert "5.06" or "05:06" to minutes with PM adjustment
             const parts = pTime.replace('.', ':').split(':');
             let h = parseInt(parts[0]);
             let m = parseInt(parts[1]);
 
-            // PM adjustment: If h is small (1-9) and it's Dhuhr or later, add 12 hours
+            // PM adjustment
             if (h < 12 && i >= 2) h += 12; 
-
             const pMins = h * 60 + m;
 
-            if (totalMins >= pMins) {
+            if (totalMinsNow >= pMins) {
                 currentLabel = names[i];
                 nextIndex = (i + 1) % names.length;
             }
         }
 
+        // Calculate minutes for the NEXT prayer to handle countdown
+        const nextName = names[nextIndex];
+        const nextTimeStr = todayPrayerData[nextName];
+        const nParts = nextTimeStr.replace('.', ':').split(':');
+        let nh = parseInt(nParts[0]);
+        let nm = parseInt(nParts[1]);
+        if (nh < 12 && nextIndex >= 2) nh += 12;
+        
+        let targetDate = new Date(now);
+        targetDate.setHours(nh, nm, 0, 0);
+
+        // If next prayer is Fajr and it's currently after Isha, target is tomorrow
+        if (nextIndex === 0 && totalMinsNow >= (nh < 12 ? (nh+12)*60 : nh*60)) {
+            targetDate.setDate(targetDate.getDate() + 1);
+        }
+        // If it's late at night (after midnight) but before Fajr
+        if (nextIndex === 0 && totalMinsNow < (nh * 60 + nm)) {
+             targetDate.setHours(nh, nm, 0, 0);
+        }
+
+        // Update active card UI
         document.querySelectorAll('.prayer-card').forEach(card => {
             card.classList.toggle('active', card.dataset.prayer === currentLabel);
         });
         
+        // Update Next Prayer Name
         const nextEl = document.getElementById('next-prayer-name');
-        if(nextEl) nextEl.innerText = names[nextIndex];
+        if(nextEl) nextEl.innerText = nextName;
+
+        // Update Countdown
+        const countdownEl = document.getElementById('prayer-countdown');
+        if (countdownEl) {
+            const diff = targetDate - now;
+            if (diff > 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+                countdownEl.innerText = `in ${hours}h ${mins}m ${secs}s`;
+            } else {
+                countdownEl.innerText = "Time for Prayer";
+            }
+        }
     }
 
     // Initialize logic
     fetchDailyAyah();
     fetchDailyHadith();
     fetchTimetablePrayers();
-    setInterval(highlightPrayer, 60000);
+    
+    // Run every second for the countdown
+    setInterval(highlightPrayer, 1000);
 
     // --- 8. Burger Menu Logic ---
     const menuToggle = document.getElementById('menu-toggle');
@@ -319,25 +351,16 @@ document.addEventListener('DOMContentLoaded', () => {
         staffLink.addEventListener('click', (e) => {
             portalClicks++;
             clearTimeout(portalTimer);
-            
             if (portalClicks >= 5) {
                 window.location.href = "login.html";
             }
-
-            portalTimer = setTimeout(() => {
-                portalClicks = 0;
-            }, 2000);
+            portalTimer = setTimeout(() => { portalClicks = 0; }, 2000);
         });
 
         let pressTimer;
         staffLink.addEventListener('touchstart', () => {
-            pressTimer = setTimeout(() => {
-                window.location.href = "login.html";
-            }, 3000); 
+            pressTimer = setTimeout(() => { window.location.href = "login.html"; }, 3000); 
         });
-
-        staffLink.addEventListener('touchend', () => {
-            clearTimeout(pressTimer);
-        });
+        staffLink.addEventListener('touchend', () => { clearTimeout(pressTimer); });
     }
 });
