@@ -27,8 +27,33 @@
         .jummah-banner .label { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; }
         .jummah-banner .time { font-family: 'Amiri', serif; font-size: 1.4rem; color: #d4af37; font-weight: bold; }
         
+        /* New Time Group Styling for Cards */
+        .time-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            margin-top: 10px;
+        }
+        .start-time {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.6;
+            font-weight: 500;
+        }
+        .jamaat-time {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #d4af37;
+        }
+        .prayer-card .time {
+            font-family: 'Inter', sans-serif;
+        }
+
         @media (max-width: 600px) {
             .jummah-banner { flex-direction: column; text-align: center; gap: 5px; margin: 20px 20px 0 20px; }
+            .jamaat-time { font-size: 1.1rem; }
         }
     </style>
 </head>
@@ -76,32 +101,56 @@
             <div class="prayer-card" data-prayer="Fajr">
                 <i data-lucide="sunrise" class="prayer-icon"></i>
                 <span class="label">Fajr</span>
-                <span class="time">06:15 AM</span>
+                <div class="time-group">
+                    <span class="start-time">Start <span class="time" id="fajr-start">--:--</span></span>
+                    <span class="jamaat-time">Jamaat <span class="time" id="fajr-jamaat">--:--</span></span>
+                </div>
             </div>
+            
             <div class="prayer-card" data-prayer="Sunrise">
                 <i data-lucide="sun-dim" class="prayer-icon"></i>
                 <span class="label">Sunrise</span>
-                <span class="time">06:50 AM</span>
+                <div class="time-group">
+                    <span class="jamaat-time" style="color: inherit; opacity: 0.8;">
+                        <span class="time" id="sunrise-start">--:--</span>
+                    </span>
+                </div>
             </div>
+
             <div class="prayer-card" data-prayer="Dhuhr">
                 <i data-lucide="sun" class="prayer-icon"></i>
                 <span class="label">Dhuhr</span>
-                <span class="time">01:30 PM</span>
+                <div class="time-group">
+                    <span class="start-time">Start <span class="time" id="dhuhr-start">--:--</span></span>
+                    <span class="jamaat-time">Jamaat <span class="time" id="dhuhr-jamaat">--:--</span></span>
+                </div>
             </div>
+
             <div class="prayer-card" data-prayer="Asr">
                 <i data-lucide="cloud-sun" class="prayer-icon"></i>
                 <span class="label">Asr</span>
-                <span class="time">06:00 PM</span>
+                <div class="time-group">
+                    <span class="start-time">Start <span class="time" id="asr-start">--:--</span></span>
+                    <span class="jamaat-time">Jamaat <span class="time" id="asr-jamaat">--:--</span></span>
+                </div>
             </div>
+
             <div class="prayer-card" data-prayer="Maghrib">
                 <i data-lucide="sunset" class="prayer-icon"></i>
                 <span class="label">Maghrib</span>
-                <span class="time">07:39 PM</span>
+                <div class="time-group">
+                    <span class="start-time">Start <span class="time" id="maghrib-start">--:--</span></span>
+                    <span class="jamaat-time">Jamaat <span class="time" id="maghrib-jamaat">--:--</span></span>
+                </div>
             </div>
+
             <div class="prayer-card" data-prayer="Isha">
                 <i data-lucide="moon" class="prayer-icon"></i>
                 <span class="label">Isha</span>
-                <span class="time">09:15 PM</span>
+                <div class="time-group">
+                    <span class="start-time">Start <span class="time" id="isha-start">--:--</span></span>
+                    <span class="jamaat-time">Jamaat <span class="time" id="isha-jamaat">--:--</span></span>
+                </div>
             </div>
         </div>
 
@@ -126,40 +175,6 @@
             <div class="reminder-badge">Daily Reminder</div>
             <p class="reminder-text">"The best among you are those who have the best manners and character."</p>
             <span class="reminder-source">— Sahih Bukhari</span>
-        </div>
-
-        <div class="feature-grid" style="display: none;">
-            <div class="feature-card reveal">
-                <div class="feature-image" style="background-image: url('assets/events-card.png');"></div>
-                <div class="feature-body">
-                    <h3>Upcoming Events</h3>
-                    <p class="feature-title">Community Lecture</p>
-                    <p class="feature-date">Saturday, May 14</p>
-                    <a href="events.html" class="btn-feature secondary">View All Events</a>
-                </div>
-            </div>
-
-            <div class="feature-card reveal accent-card">
-                <div class="feature-image" style="background-image: url('assets/charity-card.png');"></div>
-                <div class="feature-body">
-                    <h3>Support Our Charity</h3>
-                    <p class="feature-subtitle">Help Those in Need</p>
-                    <a href="donate.html" class="btn-feature primary">Donate Now</a>
-                </div>
-            </div>
-
-            <div class="feature-card reveal">
-                <div class="feature-image-group">
-                    <div class="img-top" style="background-image: url('assets/gellery-card-top.png');"></div>
-                    <div class="img-bottom-left" style="background-image: url('assets/gellery-card-bleft.png')"></div>
-                    <div class="img-bottom-right" style="background-image: url('assets/gellery-card-bright.png')"></div>
-                </div>
-                <div class="feature-body">
-                    <h3>Latest News & Gallery</h3>
-                    <p class="feature-title">New Youth Program</p>
-                    <a href="events.html" class="btn-text">Read More <i data-lucide="chevron-right"></i></a>
-                </div>
-            </div>
         </div>
 
         <div class="partners-grid reveal">

@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 5. Fetch Timetable for Homepage
+    // 5. Fetch Timetable for Homepage (Dual Times)
     async function fetchTimetablePrayers() {
         try {
             if (!window.db) {
@@ -171,24 +171,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const headers = parseRow(lines[0]);
             const dateColIndex = headers.findIndex(h => h.toUpperCase().includes('DATE'));
             
-            const fajrIdx = 3, sunIdx = 5, dhuhrIdx = 7, asrIdx = 9, magIdx = 11, ishaIdx = 12;
+            // Indices: Start is usually N, Jamaat is N+1
+            const fIdx = 3, sIdx = 5, dIdx = 7, aIdx = 9, mIdx = 11, iIdx = 12;
             const todayRow = lines.slice(1).map(parseRow).find(row => parseInt(row[dateColIndex]) === todayDay);
 
             if (todayRow) {
                 todayPrayerData = {
-                    'Fajr': todayRow[fajrIdx],
-                    'Sunrise': todayRow[sunIdx],
-                    'Dhuhr': todayRow[dhuhrIdx],
-                    'Asr': todayRow[asrIdx],
-                    'Maghrib': todayRow[magIdx],
-                    'Isha': todayRow[ishaIdx]
+                    'Fajr': { start: todayRow[fIdx], jamaat: todayRow[fIdx + 1] },
+                    'Sunrise': { start: todayRow[sIdx], jamaat: null },
+                    'Dhuhr': { start: todayRow[dIdx], jamaat: todayRow[dIdx + 1] },
+                    'Asr': { start: todayRow[aIdx], jamaat: todayRow[aIdx + 1] },
+                    'Maghrib': { start: todayRow[mIdx], jamaat: todayRow[mIdx] },
+                    'Isha': { start: todayRow[iIdx], jamaat: todayRow[iIdx + 1] }
                 };
 
-                document.querySelectorAll('.prayer-card').forEach(card => {
-                    const pName = card.dataset.prayer;
-                    if (todayPrayerData[pName]) {
-                        const timeSpan = card.querySelector('.time');
-                        timeSpan.innerText = todayPrayerData[pName];
+                const prayers = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+                prayers.forEach(p => {
+                    const dataKey = p.charAt(0).toUpperCase() + p.slice(1);
+                    const startEl = document.getElementById(`${p}-start`);
+                    const jamaatEl = document.getElementById(`${p}-jamaat`);
+                    
+                    if (startEl) startEl.innerText = todayPrayerData[dataKey].start;
+                    if (jamaatEl && todayPrayerData[dataKey].jamaat) {
+                        jamaatEl.innerText = todayPrayerData[dataKey].jamaat;
                     }
                 });
 
@@ -232,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const revealElements = document.querySelectorAll('.prayer-card, .next-prayer-status, .reveal, .reminder-card, .partners-grid, .footer');
     revealElements.forEach(el => generalObserver.observe(el));
 
-    // 7. UPDATED: Prayer Highlighting & Countdown Logic
+    // 7. UPDATED: Countdown Targets JAMAAT Time
     function highlightPrayer() {
         if (!todayPrayerData) return;
 
@@ -242,17 +247,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let currentLabel = 'Isha';
         let nextIndex = 0;
-        let nextPrayerTimeMins = 0;
 
+        // Determine current prayer based on START time
         for (let i = 0; i < names.length; i++) {
-            const pTime = todayPrayerData[names[i]];
+            const pTime = todayPrayerData[names[i]].start;
             if (!pTime) continue;
             
             const parts = pTime.replace('.', ':').split(':');
             let h = parseInt(parts[0]);
             let m = parseInt(parts[1]);
 
-            // PM adjustment
             if (h < 12 && i >= 2) h += 12; 
             const pMins = h * 60 + m;
 
@@ -262,36 +266,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Calculate minutes for the NEXT prayer to handle countdown
+        // Target Next Jamaat (Fallback to Start if Jamaat is null)
         const nextName = names[nextIndex];
-        const nextTimeStr = todayPrayerData[nextName];
+        const nextTimeStr = todayPrayerData[nextName].jamaat || todayPrayerData[nextName].start;
         const nParts = nextTimeStr.replace('.', ':').split(':');
         let nh = parseInt(nParts[0]);
         let nm = parseInt(nParts[1]);
+
+        // Standard PM handling (Dhuhr onwards)
         if (nh < 12 && nextIndex >= 2) nh += 12;
         
         let targetDate = new Date(now);
         targetDate.setHours(nh, nm, 0, 0);
 
-        // If next prayer is Fajr and it's currently after Isha, target is tomorrow
+        // Date rollover logic
         if (nextIndex === 0 && totalMinsNow >= (nh < 12 ? (nh+12)*60 : nh*60)) {
             targetDate.setDate(targetDate.getDate() + 1);
         }
-        // If it's late at night (after midnight) but before Fajr
         if (nextIndex === 0 && totalMinsNow < (nh * 60 + nm)) {
              targetDate.setHours(nh, nm, 0, 0);
         }
 
-        // Update active card UI
         document.querySelectorAll('.prayer-card').forEach(card => {
             card.classList.toggle('active', card.dataset.prayer === currentLabel);
         });
         
-        // Update Next Prayer Name
         const nextEl = document.getElementById('next-prayer-name');
-        if(nextEl) nextEl.innerText = nextName;
+        if(nextEl) nextEl.innerText = nextName + " Jamaat";
 
-        // Update Countdown
         const countdownEl = document.getElementById('prayer-countdown');
         if (countdownEl) {
             const diff = targetDate - now;
@@ -301,17 +303,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const secs = Math.floor((diff % (1000 * 60)) / 1000);
                 countdownEl.innerText = `in ${hours}h ${mins}m ${secs}s`;
             } else {
-                countdownEl.innerText = "Time for Prayer";
+                countdownEl.innerText = "Jamaat in progress";
             }
         }
     }
 
-    // Initialize logic
     fetchDailyAyah();
     fetchDailyHadith();
     fetchTimetablePrayers();
-    
-    // Run every second for the countdown
     setInterval(highlightPrayer, 1000);
 
     // --- 8. Burger Menu Logic ---
