@@ -71,8 +71,8 @@
             </div>
         </section>
 
-        <section class="bank-details-section" style="padding-bottom: 100px;">
-            <div class="bank-grid">
+        <section class="bank-details-section" style="padding-bottom: 100px; text-align: center;">
+            <div class="bank-grid" style="display: flex; justify-content: center; margin-bottom: 30px;">
                 <div class="bank-card reveal">
                     <h3>Yardley Muslim Centre</h3>
                     <div class="detail-row" onclick="copyValue('778510', this)">
@@ -84,20 +84,8 @@
                         <span class="detail-value">60 40 43 60 <i data-lucide="copy"></i></span>
                     </div>
                 </div>
-
-                <div class="bank-card reveal">
-                    <h3>Thaqwa Masjid</h3>
-                    <div class="detail-row" onclick="copyValue('206788', this)">
-                        <span class="detail-label">Sort Code</span>
-                        <span class="detail-value">20 67 88 <i data-lucide="copy"></i></span>
-                    </div>
-                    <div class="detail-row" onclick="copyValue('70160032', this)">
-                        <span class="detail-label">Account No.</span>
-                        <span class="detail-value">70 16 00 32 <i data-lucide="copy"></i></span>
-                    </div>
-                </div>
             </div>
-            <p class="jazakallah reveal">JazakAllah Khair</p>
+            <p class="jazakallah reveal" style="margin: 0 auto;">JazakAllah Khair</p>
         </section>
     </main>
 
@@ -109,10 +97,8 @@
 
     <script>
         function copyValue(text, element) {
-            // Remove spaces from account numbers for clean copying
             navigator.clipboard.writeText(text.replace(/\s/g, ''));
             
-            // Visual feedback
             const originalColor = element.style.color;
             element.style.color = "var(--accent)";
             setTimeout(() => { 
