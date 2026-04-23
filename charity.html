@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
     <style>
         html { scroll-behavior: smooth; }
@@ -36,16 +37,47 @@
 
         .charity-main-content { max-width: 1200px; margin: 0 auto; padding: 0 20px; position: relative; flex: 1; width: 100%; box-sizing: border-box; }
 
+        /* --- TIGHTENED BANK DETAILS CARD --- */
         .bank-details-card {
-            max-width: 1100px; margin: 20px auto 60px;
-            background: white; padding: 30px; border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
-            position: relative; z-index: 10; scroll-margin-top: 100px;
+            max-width: 900px; 
+            margin: 10px auto 50px;
+            background: white; 
+            padding: 20px; 
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 15px;
+            position: relative; 
+            z-index: 10; 
+            scroll-margin-top: 100px;
+            box-sizing: border-box;
+            align-items: center;
         }
 
-        .detail-item h4 { color: #aaa; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 4px; }
-        .detail-item p { font-size: 1.05rem; font-weight: 700; color: #1a1a1a; margin: 0; word-break: break-word; }
+        .detail-item {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .detail-item h4 { 
+            color: #aaa; 
+            text-transform: uppercase; 
+            font-size: 0.65rem; 
+            letter-spacing: 0.5px; 
+            margin: 0 0 4px 0; 
+        }
+
+        .detail-item p { 
+            font-size: 0.95rem; 
+            font-weight: 700; 
+            color: #1a1a1a; 
+            margin: 0; 
+            word-break: break-word; 
+            line-height: 1.2;
+        }
         
         .charity-grid {
             display: grid;
@@ -60,7 +92,7 @@
         }
 
         .charity-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
-        .charity-img { width: 100%; height: 230px; object-fit: cover; }
+        .charity-img { width: 100%; height: 230px; object-fit: cover; object-position: top; }
         .charity-body { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
         .charity-body h3 { margin-bottom: 12px; font-size: 1.4rem; color: #1a1a1a; }
         .charity-body p { 
@@ -116,7 +148,6 @@
         }
         .modal-close:hover { background: #eee; transform: rotate(90deg); }
 
-        /* SQUARE GALLERY */
         .modal-gallery { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
@@ -129,10 +160,9 @@
         }
         .modal-gallery img:hover { transform: scale(1.05); filter: brightness(0.9); }
 
-        /* --- MOBILE ADAPTATION --- */
         @media (max-width: 768px) {
             .page-hero { height: 350px; }
-            .bank-details-card { grid-template-columns: 1fr; text-align: center; }
+            .bank-details-card { grid-template-columns: 1fr; gap: 20px; padding: 25px; }
 
             .modal { align-items: flex-end; padding: 0; }
             .modal-content { 
@@ -143,7 +173,6 @@
             
             .modal-body { padding: 30px 20px 40px; }
             
-            /* Grab handle for mobile */
             .modal-content::before {
                 content: ''; width: 40px; height: 5px; background: #e0e0e0;
                 border-radius: 10px; position: absolute; top: 12px; left: 50%;
@@ -153,7 +182,6 @@
             .modal-close { top: 15px; right: 15px; width: 32px; height: 32px; }
         }
 
-        /* --- LIGHTBOX --- */
         .lightbox {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); display: none; z-index: 3000;
@@ -182,8 +210,14 @@
                 <li><a href="timetable.html">Timetable</a></li>
                 <li><a href="events.html">Events</a></li>
                 <li><a href="charity.html" style="color: #d4af37;">Sadaqah</a></li>
+                <li><a href="gallery.html">Gallery</a></li>
                 <li><a href="contact.html">Contact</a></li>
                 <li><a href="donate.html" class="btn-donate">Du'a</a></li>
+                <li class="mobile-only-fb">
+                    <a href="https://www.facebook.com/p/YMCYardley-Muslim-Centre-61586410127916/" target="_blank">
+                        <i class="fa-brands fa-facebook"></i> Follow us on Facebook
+                    </a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -195,7 +229,7 @@
 
     <main class="charity-main-content">
         <section class="bank-details-card" id="bank">
-            <div class="detail-item"><h4>Bank Name</h4><p>Barclays Bank</p></div>
+            <div class="detail-item"><h4>Bank Name</h4><p>Lloyds Bank</p></div>
             <div class="detail-item"><h4>Account Name</h4><p id="acc-name">Yardley Muslim Centre</p></div>
             <div class="detail-item"><h4>Sort Code</h4><p id="sort-code">77-85-10</p></div>
             <div class="detail-item"><h4>Account No</h4><p id="acc-no">60404360</p></div>

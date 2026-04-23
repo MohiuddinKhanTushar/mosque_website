@@ -15,6 +15,7 @@
             --bg-admin: #f9f9f9; 
             --accent: #d4af37; 
             --text-main: #1a1a1a; 
+            --danger: #ff4d4d;
         }
 
         body { 
@@ -111,9 +112,23 @@
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
 
         .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .mini-card { background: #fcfcfc; border: 1px solid #eee; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; }
+        .mini-card { background: #fcfcfc; border: 1px solid #eee; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
         .mini-card img { width: 100%; height: 160px; object-fit: cover; border-bottom: 1px solid #eee; }
         .mini-card-content { padding: 20px; flex: 1; }
+        
+        .status-badge { 
+            position: absolute; top: 10px; left: 10px; 
+            padding: 4px 10px; border-radius: 20px; 
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+        }
+        .status-archived { background: #eee; color: #888; }
+        .status-active { background: #e6f4ea; color: #1e7e34; }
+
+        /* --- Bento Gallery Specific --- */
+        .bento-admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .bento-slot { border: 2px dashed #ddd; border-radius: 15px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; background: #fcfcfc; }
+        .bento-slot img { width: 100%; height: 100%; object-fit: cover; }
+        .bento-slot .remove-btn { position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; }
 
         /* --- Modals --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
@@ -135,7 +150,7 @@
             .admin-card { padding: 20px; }
             .data-grid { grid-template-columns: 1fr; }
             .btn-primary, .btn-outline { width: 100%; text-align: center; }
-            .timetable-controls { grid-template-columns: 1fr !important; }
+            .bento-admin-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -147,6 +162,7 @@
         <nav class="nav-group">
             <div class="nav-item active" id="nav-timetable" onclick="showTab('timetable', this)"><i data-lucide="calendar"></i> Timetable</div>
             <div class="nav-item" id="nav-events" onclick="showTab('events', this)"><i data-lucide="newspaper"></i> Events & News</div>
+            <div class="nav-item" id="nav-gallery" onclick="showTab('gallery', this)"><i data-lucide="image"></i> Gallery</div>
             <div class="nav-item" id="nav-charity" onclick="showTab('charity', this)"><i data-lucide="heart"></i> Sadaqah</div>
             <div class="nav-item" id="nav-quotes" onclick="showTab('quotes', this)"><i data-lucide="quote"></i> Quran Quotes</div>
             <div class="nav-item nav-logout" onclick="logout()" style="margin-top:auto;"><i data-lucide="log-out"></i> Logout</div>
@@ -166,7 +182,7 @@
             </div>
         </header>
 
-        <section id="tab-timetable" class="tab-content active-tab">
+        <section id="tab-timetable" class="tab-content">
             <div class="admin-card">
                 <h3>Upload New Month</h3>
                 <div class="timetable-controls" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
@@ -228,6 +244,38 @@
                     </div>
                 </div>
                 <div class="data-grid" id="events-grid"></div>
+            </div>
+        </section>
+
+        <section id="tab-gallery" class="tab-content" style="display:none;">
+            <div class="admin-card">
+                <h3>Bento Box (Top 6 Images)</h3>
+                <p style="font-size:0.85rem; color:#888;">Manage the 6 images shown in the bento grid. Upload exactly 6 images to fill the space.</p>
+                <div class="bento-admin-grid" id="bento-manager">
+                    </div>
+                <div style="margin-top:20px;">
+                    <input type="file" id="bentoInput" accept="image/*" hidden onchange="uploadBentoImage(this)">
+                    <button class="btn-primary" id="addBentoBtn" onclick="document.getElementById('bentoInput').click()">+ Upload Bento Image</button>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="margin:0;">Image Collections</h3>
+                    <button class="btn-primary" onclick="toggleForm('collection')">+ Create Collection</button>
+                </div>
+
+                <div id="collection-form" style="display:none; margin-bottom:30px; border:1px solid #eee; padding:25px; border-radius:15px; background:#fcfcfc;">
+                    <div class="form-group"><label>Collection Name</label><input type="text" id="colName" placeholder="e.g. Ramadan 2026"></div>
+                    <div class="form-group"><label>Short Description</label><textarea id="colDesc" rows="2"></textarea></div>
+                    <div class="form-group"><label>Upload Photos</label><input type="file" id="colImages" multiple accept="image/*"></div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-primary" id="saveColBtn" onclick="uploadCollection()">Create Collection</button>
+                        <button class="btn-outline" onclick="toggleForm('collection')">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="data-grid" id="collections-grid"></div>
             </div>
         </section>
 
@@ -325,7 +373,9 @@
 
         window.showTab = (tabId, el) => {
             document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-            document.getElementById('tab-'+tabId).style.display = 'block';
+            const target = document.getElementById('tab-'+tabId);
+            if(target) target.style.display = 'block';
+            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
             document.getElementById('page-title').innerText = "Manage " + tabId.charAt(0).toUpperCase() + tabId.slice(1);
@@ -338,9 +388,9 @@
             if(tabId === 'events') fetchEvents();
             if(tabId === 'charity') fetchCharity();
             if(tabId === 'quotes') fetchQuotes();
+            if(tabId === 'gallery') { fetchBento(); fetchCollections(); }
         };
 
-        // --- COMMON UTILITIES ---
         const uploadFiles = async (files, folder) => {
             const urls = [];
             for (const file of files) {
@@ -372,6 +422,7 @@
                 if(col === 'upcoming' || col === 'news') fetchEvents();
                 if(col === 'charity') fetchCharity();
                 if(col === 'quotes') fetchQuotes();
+                if(col === 'collections') fetchCollections();
             } catch (err) { alert("Deletion error: " + err.message); }
         };
 
@@ -509,8 +560,10 @@
             const grid = document.getElementById('events-grid');
             const col = currentSubMode === 'upcoming' ? 'upcoming' : 'news';
             const snap = await getDocs(query(collection(db, col), orderBy("createdAt", "desc")));
+            
             grid.innerHTML = snap.docs.map(d => {
                 const data = d.data();
+                const isArchived = data.isArchived || false;
                 let subtitle = '';
                 if (data.isRecurring) {
                     subtitle = `<p style="font-size:0.8rem; color:var(--accent); font-weight:600; margin:5px 0;">${data.recurrenceType}: ${data.recurrenceDay}</p>`;
@@ -520,18 +573,39 @@
                 const imgHtml = (data.images && data.images.length > 0) 
                     ? `<img src="${data.images[0]}" alt="preview">` 
                     : `<div style="height:160px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#ccc"><i data-lucide="image"></i></div>`;
+                
                 return `
-                <div class="mini-card">
+                <div class="mini-card" style="opacity: ${isArchived ? '0.7' : '1'}">
+                    <span class="status-badge ${isArchived ? 'status-archived' : 'status-active'}">
+                        ${isArchived ? 'Archived' : 'Active'}
+                    </span>
                     ${imgHtml}
                     <div class="mini-card-content">
                         <h4 style="margin:0 0 10px 0">${data.title}</h4>
                         ${subtitle}
-                        <button class="btn-outline" style="color:red; width:100%; margin-top:10px" onclick="deleteDocItem('${col}', '${d.id}')">Delete</button>
+                        <div style="display:flex; gap:8px; margin-top:15px;">
+                            <button class="btn-outline" style="flex:1" onclick="toggleArchive('${col}', '${d.id}', ${isArchived})">
+                                ${isArchived ? 'Unarchive' : 'Archive'}
+                            </button>
+                            <button class="btn-outline" style="color:var(--danger); border-color:rgba(255,0,0,0.1)" onclick="deleteDocItem('${col}', '${d.id}')">
+                                <i data-lucide="trash-2" style="width:14px"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `}).join('') || '<p>No items found.</p>';
             lucide.createIcons();
         }
+
+        window.toggleArchive = async (col, id, currentStatus) => {
+            try {
+                const docRef = doc(db, col, id);
+                await updateDoc(docRef, { isArchived: !currentStatus });
+                fetchEvents();
+            } catch (err) {
+                alert("Archive update failed: " + err.message);
+            }
+        };
 
         window.uploadEvent = async () => {
             const title = document.getElementById('eventTitle').value;
@@ -555,7 +629,7 @@
                 if(fileInput.files.length > 0) {
                     images = await uploadFiles(fileInput.files, col);
                 }
-                const payload = { title, desc: description, images, createdAt: new Date() };
+                const payload = { title, desc: description, images, isArchived: false, createdAt: new Date() };
 
                 if(currentSubMode === 'upcoming') { 
                     payload.isRecurring = isRecurring;
@@ -571,6 +645,7 @@
 
                 await addDoc(collection(db, col), payload);
                 toggleForm('event'); fetchEvents();
+                // Reset form
                 document.getElementById('eventTitle').value = ""; document.getElementById('eventDesc').value = "";
                 document.getElementById('eventDate').value = ""; document.getElementById('eventTime').value = "";
                 document.getElementById('isRecurring').checked = false; document.getElementById('eventImages').value = "";
@@ -578,6 +653,90 @@
             } catch (err) { alert("Upload failed: " + err.message); } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerText = "Save Item";
+            }
+        };
+
+        // --- GALLERY & BENTO LOGIC ---
+        async function fetchBento() {
+            const container = document.getElementById('bento-manager');
+            const snap = await getDoc(doc(db, "settings", "gallery"));
+            const images = snap.exists() ? (snap.data().bento || []) : [];
+            
+            container.innerHTML = images.map((url, i) => `
+                <div class="bento-slot">
+                    <img src="${url}">
+                    <button class="remove-btn" onclick="deleteBentoImage(${i})">✕</button>
+                </div>
+            `).join('');
+
+            for (let i = images.length; i < 6; i++) {
+                container.innerHTML += `<div class="bento-slot" style="color:#ccc"><i data-lucide="image"></i><small>Slot ${i+1}</small></div>`;
+            }
+            
+            document.getElementById('addBentoBtn').disabled = images.length >= 6;
+            lucide.createIcons();
+        }
+
+        window.uploadBentoImage = async (input) => {
+            if(!input.files[0]) return;
+            const btn = document.getElementById('addBentoBtn');
+            try {
+                btn.disabled = true; btn.innerText = "Uploading...";
+                const url = (await uploadFiles([input.files[0]], 'bento'))[0];
+                const snap = await getDoc(doc(db, "settings", "gallery"));
+                let bento = snap.exists() ? (snap.data().bento || []) : [];
+                bento.push(url);
+                await setDoc(doc(db, "settings", "gallery"), { bento }, { merge: true });
+                fetchBento();
+            } catch (e) { alert(e.message); } finally {
+                btn.disabled = false; btn.innerText = "+ Upload Bento Image";
+                input.value = "";
+            }
+        };
+
+        window.deleteBentoImage = async (index) => {
+            if(!confirm("Remove this bento image?")) return;
+            const snap = await getDoc(doc(db, "settings", "gallery"));
+            let bento = snap.data().bento;
+            const url = bento[index];
+            try { await deleteObject(ref(storage, url)); } catch(e) { console.warn(e); }
+            bento.splice(index, 1);
+            await updateDoc(doc(db, "settings", "gallery"), { bento });
+            fetchBento();
+        };
+
+        async function fetchCollections() {
+            const grid = document.getElementById('collections-grid');
+            const snap = await getDocs(query(collection(db, "collections"), orderBy("createdAt", "desc")));
+            grid.innerHTML = snap.docs.map(d => {
+                const data = d.data();
+                return `
+                <div class="mini-card">
+                    <img src="${data.images[0]}" alt="preview">
+                    <div class="mini-card-content">
+                        <h4 style="margin:0">${data.title}</h4>
+                        <p style="font-size:0.8rem; color:#888;">${data.images.length} Photos</p>
+                        <button class="btn-outline" style="color:red; width:100%" onclick="deleteDocItem('collections', '${d.id}')">Delete Collection</button>
+                    </div>
+                </div>`;
+            }).join('') || '<p>No collections found.</p>';
+        }
+
+        window.uploadCollection = async () => {
+            const title = document.getElementById('colName').value;
+            const desc = document.getElementById('colDesc').value;
+            const files = document.getElementById('colImages').files;
+            const btn = document.getElementById('saveColBtn');
+            if(!title || files.length === 0) return alert("Name and images required");
+            try {
+                btn.disabled = true; btn.innerText = "Creating...";
+                const images = await uploadFiles(files, 'collections');
+                await addDoc(collection(db, "collections"), { title, desc, images, createdAt: new Date() });
+                toggleForm('collection'); fetchCollections();
+                document.getElementById('colName').value = ""; document.getElementById('colDesc').value = "";
+                document.getElementById('colImages').value = "";
+            } catch (e) { alert(e.message); } finally {
+                btn.disabled = false; btn.innerText = "Create Collection";
             }
         };
 
@@ -609,23 +768,17 @@
             const target = document.getElementById('charTarget').value;
             const fileInput = document.getElementById('charImages');
             const saveBtn = document.getElementById('saveCharityBtn');
-
             if(!title) return alert("Title required");
-            
             try {
-                saveBtn.disabled = true;
-                saveBtn.innerText = "Uploading...";
+                saveBtn.disabled = true; saveBtn.innerText = "Uploading...";
                 let images = [];
-                if(fileInput.files.length > 0) {
-                    images = await uploadFiles(fileInput.files, 'charity');
-                }
+                if(fileInput.files.length > 0) { images = await uploadFiles(fileInput.files, 'charity'); }
                 await addDoc(collection(db, "charity"), { title, description, target, images, createdAt: new Date() });
                 toggleForm('charity'); fetchCharity();
                 document.getElementById('charName').value = ""; document.getElementById('charDesc').value = "";
                 document.getElementById('charTarget').value = ""; document.getElementById('charImages').value = "";
             } catch (err) { alert("Upload failed: " + err.message); } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerText = "Save Project";
+                saveBtn.disabled = false; saveBtn.innerText = "Save Project";
             }
         };
 
@@ -645,10 +798,8 @@
             const english = document.getElementById('qEnglish').value;
             const reference = document.getElementById('qRef').value;
             if(!arabic || !english) return alert("Arabic and English text required");
-            
             await addDoc(collection(db, "quotes"), { arabic, english, reference, createdAt: new Date() });
-            document.getElementById('qArabic').value = "";
-            document.getElementById('qEnglish').value = "";
+            document.getElementById('qArabic').value = ""; document.getElementById('qEnglish').value = "";
             document.getElementById('qRef').value = "";
             toggleForm('quote'); fetchQuotes();
         };
@@ -657,11 +808,9 @@
             const file = input.files[0];
             if (!file) return;
             Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
+                header: true, skipEmptyLines: true,
                 complete: async (results) => {
                     const quotes = results.data;
-                    if (quotes.length === 0) return alert("CSV is empty");
                     try {
                         const batchSize = 500;
                         for (let i = 0; i < quotes.length; i += batchSize) {
@@ -678,15 +827,13 @@
                             });
                             await batch.commit();
                         }
-                        alert(`Successfully uploaded ${quotes.length} quotes.`);
-                        fetchQuotes();
+                        alert(`Successfully uploaded ${quotes.length} quotes.`); fetchQuotes();
                     } catch (err) { alert("Bulk upload failed: " + err.message); }
                     input.value = ""; 
                 }
             });
         };
 
-        // --- AUTH & INIT ---
         window.logout = () => { sessionStorage.clear(); location.href="login.html"; };
 
         window.addEventListener('DOMContentLoaded', () => {
