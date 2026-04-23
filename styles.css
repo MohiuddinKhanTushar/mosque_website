@@ -805,7 +805,7 @@ body {
     /* Target using the parent ID to increase specificity */
     #nav-links .mobile-only-fb {
         display: block !important;
-        margin-top: 300px;
+        margin-top: 200px;
         padding-top: 20px;
         border-top: 1px solid rgba(212, 175, 55, 0.2);
         width: 100%;
