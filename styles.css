@@ -32,6 +32,7 @@ body {
     border-bottom: 1px solid transparent;
 }
 
+/* Scrolled state: Adds the glass effect */
 .navbar.scrolled {
     background: rgba(255, 255, 255, 0.1) !important; 
     backdrop-filter: blur(20px) !important;
@@ -55,32 +56,33 @@ body {
 .logo-img {
     height: 120px;
     width: auto;
-    filter: brightness(0) invert(1);
+    /* Removed brightness/invert filter so it shows default logo colors at the top */
     transition: filter 0.4s ease;
 }
 
+/* Optional: if you want the logo to dim slightly when scrolled */
 .navbar.scrolled .logo-img { 
     filter: none; 
 }
 
 /* Menu Toggle / Burger Button */
 .menu-toggle {
-    display: none; /* Hidden on desktop */
+    display: none; 
     background: none;
     border: none;
     cursor: pointer;
-    color: white; 
+    /* Changed to dark by default */
+    color: var(--text-main); 
     padding: 10px;
     transition: color 0.3s ease;
-    /* FIX: Added position so z-index works */
     position: relative; 
-    z-index: 2000; /* Higher than the nav-menu (1000) */
+    z-index: 2000; 
 }
 
 .menu-toggle svg {
     width: 28px;
     height: 28px;
-    display: block; /* Removes weird baseline spacing */
+    display: block;
 }
 
 .navbar.scrolled .menu-toggle,
@@ -98,13 +100,17 @@ body {
 }
 
 .nav-menu li a {
-    color: var(--text-white);
+    color: var(--text-main);
     text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: color 0.4s ease;
+    font-size: 1rem; /* Slightly increased from 0.9rem */
+    font-weight: 700; /* Made Bold (700) */
+    letter-spacing: 0.02em; /* Added slight spacing for readability */
+    transition: all 0.4s ease;
+    /* Subtle shadow to help visibility against varied backgrounds */
+    text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.3);
 }
 
+/* Keep the color consistent or change slightly on scroll */
 .navbar.scrolled .nav-menu li a { 
     color: var(--text-main); 
 }
@@ -112,8 +118,10 @@ body {
 .btn-donate {
     background-color: #34495e; 
     color: white !important;
-    padding: 10px 24px;
+    padding: 12px 28px;
     border-radius: 50px;
+    font-weight: 700;
+    text-shadow: none;
 }
 
 /* --- Hero Section & Quran API Safety --- */
