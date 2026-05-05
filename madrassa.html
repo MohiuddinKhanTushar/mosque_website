@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madrassa | Yardley Muslim Centre</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+
+    <style>
+        .page-hero {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 400px;
+            z-index: -1;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #f9f9f9 100%), 
+                        url('assets/madrassa-hero.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .madrassa-main-content {
+            padding-top: 120px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-top: 10px;
+        }
+
+        .madrassa-section {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(212, 175, 55, 0.1);
+            color: #d4af37;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h2 { font-size: 2rem; color: #1a1a1a; margin: 15px 0; }
+        h3 { color: #d4af37; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+
+        .info-list { list-style: none; padding: 0; }
+        .info-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            color: #444;
+            font-size: 0.95rem;
+        }
+        .info-list i { color: #d4af37; width: 20px; text-align: center; }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .feature-item {
+            background: #fdfbf5;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid #d4af37;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* --- Updated CTA Section (Container removed) --- */
+        .cta-action-area {
+            text-align: center;
+            margin: 60px 0 100px;
+            padding: 0 20px;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: #d4af37;
+            color: white;
+            padding: 20px 45px;
+            border-radius: 18px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-download:hover {
+            background: #c29d2f;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(212, 175, 55, 0.3);
+        }
+
+        .venue-info {
+            margin-top: 25px;
+            color: #666;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .quote-box {
+            font-style: italic;
+            color: #666;
+            padding: 20px;
+            border-left: 3px solid #d4af37;
+            background: #fff;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .section-grid { grid-template-columns: 1fr; }
+            .madrassa-main-content { padding-top: 100px; }
+            .page-header h1 { font-size: 2.2rem; }
+            .madrassa-section { padding: 25px; }
+            .btn-download { width: 100%; box-sizing: border-box; justify-content: center; }
+        }
+
+        .reveal { opacity: 0; transform: translateY(20px); transition: 0.6s all ease; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div class="page-hero"></div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html">
+                <img src="assets/logo.png" alt="YMC Logo" class="logo-img">
+            </a>
+            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Menu">
+                <i data-lucide="menu"></i>
+            </button>
+            <ul class="nav-menu" id="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="timetable.html">Timetable</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="events.html">Events</a></li>
+                <li><a href="charity.html">Sadaqah</a></li>
+                <li><a href="gallery.html">Gallery</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="donate.html" class="btn-donate">Du'a</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="madrassa-main-content">
+        <header class="page-header reveal active">
+            <span class="badge">Education & Growth</span>
+            <h1>Madrassa & Quran Classes</h1>
+            <p>Nurturing the next generation and providing spiritual growth for adults.</p>
+        </header>
+
+        <!-- Summer School Section -->
+        <section class="madrassa-section reveal active">
+            <div class="section-grid">
+                <div class="info-side">
+                    <span class="badge" style="background: rgba(46, 125, 50, 0.1); color: #2e7d32;">Youth Program</span>
+                    <h2>Summer School 2026</h2>
+                    <p>Join us for a fun, faith-filled and educational summer where children strengthen their Islam, build character, and develop skills.</p>
+                    
+                    <ul class="info-list" style="margin-top: 20px;">
+                        <li><i data-lucide="calendar"></i> Monday 27th July — Friday 28th August 2026</li>
+                        <li><i data-lucide="clock"></i> 10:00 AM to 2:00 PM (Mon to Fri)</li>
+                        <li><i data-lucide="users"></i> Open to children aged 5-18 years</li>
+                        <li><i data-lucide="tag"></i> Only £75 per child/week</li>
+                    </ul>
+                </div>
+                <div class="program-side">
+                    <h3>Program Activities</h3>
+                    <div class="features-grid">
+                        <div class="feature-item">Daily Qur’an Recitation</div>
+                        <div class="feature-item">Lessons from Hadiths</div>
+                        <div class="feature-item">English & Maths</div>
+                        <div class="feature-item">Islamic History</div>
+                        <div class="feature-item">Character Building</div>
+                        <div class="feature-item">Sports & Physical Activities</div>
+                    </div>
+                    <p style="margin-top: 15px; font-size: 0.85rem; color: #666;">* Certificates awarded at the end of the programme.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Adult Classes Section -->
+        <section class="madrassa-section reveal active">
+            <div class="section-grid">
+                <div class="info-side">
+                    <span class="badge">Adult Education</span>
+                    <h2>Men's Quran Classes</h2>
+                    <p>Whether you are an absolute beginner starting with the Noorani Qaida or returning to perfect your Tajweed, our guided classes help you deepen your connection with the Quran.</p>
+                    
+                    <div class="quote-box">
+                        "The best among you (Muslims) are those who learn the Qur'an and teach it." — Prophet Muhammad (ﷺ)
+                    </div>
+                </div>
+                <div class="program-side">
+                    <h3>Class Times</h3>
+                    <ul class="info-list">
+                        <li><i data-lucide="sun"></i> <strong>Wednesday:</strong> After Zuhur</li>
+                        <li><i data-lucide="moon"></i> <strong>Thursday:</strong> After Magrib</li>
+                        <li><i data-lucide="sunrise"></i> <strong>Sunday:</strong> After Fajr</li>
+                        <li><i data-lucide="check-circle"></i> <strong>Cost:</strong> Free Classes</li>
+                    </ul>
+                    <h3 style="margin-top: 25px;">What you will learn</h3>
+                    <div class="features-grid">
+                        <div class="feature-item">Noorani Qaida</div>
+                        <div class="feature-item">Hifz (Memorization)</div>
+                        <div class="feature-item">Tajweed Perfection</div>
+                        <div class="feature-item">Juz Amma</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Clean Call to Action Area -->
+        <div class="cta-action-area reveal active">
+            <h2 style="margin-bottom: 10px;">Enroll Your Child Today</h2>
+            <p style="color: #666; max-width: 600px; margin: 0 auto 30px;">Spaces for the Summer School are limited. Download the form below to secure your place.</p>
+            
+            <a href="assets/madrassa-app.pdf" class="btn-download" download>
+                <i data-lucide="file-text"></i> Download Application Form (PDF)
+            </a>
+            
+            <div class="venue-info">
+                <i data-lucide="map-pin" style="width: 18px; color: #d4af37;"></i>
+                <span>47-51 Stoney Lane, Yardley, B25 8RE</span>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer" style="text-align: center; padding: 40px; color: #888; border-top: 1px solid #eee;">
+        <p>&copy; 2026 Yardley Muslim Centre. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('active');
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

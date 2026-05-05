@@ -26,17 +26,19 @@ body {
     display: flex;
     align-items: center;
     transition: background 0.4s ease, backdrop-filter 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    background: transparent !important;
-    backdrop-filter: blur(0px);
-    -webkit-backdrop-filter: blur(0px);
-    border-bottom: 1px solid transparent;
+    
+    /* Permanent Translucent Container (Matches image_a6c2b3.jpg) */
+    background: rgba(255, 255, 255, 0.15) !important; 
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Scrolled state: Adds the glass effect */
+/* Scrolled state: Slightly intensifies the effect for depth */
 .navbar.scrolled {
-    background: rgba(255, 255, 255, 0.1) !important; 
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
+    background: rgba(255, 255, 255, 0.25) !important; 
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
 }
 
 .navbar.hidden { 
@@ -56,13 +58,8 @@ body {
 .logo-img {
     height: 120px;
     width: auto;
-    /* Removed brightness/invert filter so it shows default logo colors at the top */
-    transition: filter 0.4s ease;
-}
-
-/* Optional: if you want the logo to dim slightly when scrolled */
-.navbar.scrolled .logo-img { 
-    filter: none; 
+    transition: transform 0.4s ease;
+    filter: none; /* Ensures logo colors are default */
 }
 
 /* Menu Toggle / Burger Button */
@@ -71,7 +68,6 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    /* Changed to dark by default */
     color: var(--text-main); 
     padding: 10px;
     transition: color 0.3s ease;
@@ -102,17 +98,17 @@ body {
 .nav-menu li a {
     color: var(--text-main);
     text-decoration: none;
-    font-size: 1rem; /* Slightly increased from 0.9rem */
-    font-weight: 700; /* Made Bold (700) */
-    letter-spacing: 0.02em; /* Added slight spacing for readability */
+    font-size: 1rem; 
+    font-weight: 700; /* Bolded for visibility */
+    letter-spacing: 0.02em; 
     transition: all 0.4s ease;
-    /* Subtle shadow to help visibility against varied backgrounds */
-    text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.3);
+    /* Soft shadow to ensure contrast over the image background */
+    text-shadow: 0px 1px 3px rgba(255, 255, 255, 0.4);
 }
 
-/* Keep the color consistent or change slightly on scroll */
 .navbar.scrolled .nav-menu li a { 
-    color: var(--text-main); 
+    color: var(--text-main);
+    text-shadow: none; /* Shadow removed when background becomes more opaque */
 }
 
 .btn-donate {
@@ -122,6 +118,7 @@ body {
     border-radius: 50px;
     font-weight: 700;
     text-shadow: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 /* --- Hero Section & Quran API Safety --- */
@@ -604,6 +601,48 @@ body {
     backdrop-filter: blur(10px);
     border-radius: 30px;
     padding: 40px;
+}
+
+/* --- Mobile Specific Optimizations (Max 768px) --- */
+@media (max-width: 768px) {
+    .donate-hero {
+        height: 35vh; /* Significantly reduced height for mobile */
+        margin-bottom: 20px;
+        padding-top: 60px; /* Account for the fixed navbar */
+    }
+
+    .donate-hero h1 {
+        font-size: 2.2rem; /* Scaled down text */
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        padding: 0 20px;
+    }
+
+    .donation-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2x3 grid instead of 4x1 or 1x6 */
+        gap: 12px;
+        margin: 20px auto;
+    }
+
+    .donate-item {
+        padding: 20px 10px; /* Slimmer cards */
+        border-radius: 16px;
+    }
+
+    .item-label {
+        font-size: 0.85rem;
+    }
+
+    .item-price {
+        font-size: 1.1rem;
+    }
+
+    .bank-grid {
+        grid-template-columns: 1fr; /* Stack bank details on mobile */
+        margin: 20px auto;
+    }
 }
 
 /* --- CONTACT PAGE CSS --- */
